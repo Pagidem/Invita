@@ -20,9 +20,29 @@
                         Nuevo invitado
                     </button>
 
+                    <div class="row mb-3 mt-3">
+                        <div class="col-md-4">
+                            <input
+                                v-model="search"
+                                class="form-control"
+                                type="text"
+                                placeholder="Buscar invitado..."
+                                @input="debouncedSearch"
+                            >
+                        </div>
+                    </div>
+
+
                 </div>
 
-                <div class="table-responsive">
+                
+                <div v-if="loading" class="text-center py-3">
+                    Cargando invitados...
+                </div>
+
+                <div v-else class="table-responsive">
+
+                   
 
                     <table class="table table-hover align-middle mb-0">
 
@@ -74,14 +94,40 @@ import AppLayout from './AppLayout.vue';
 import api from '../Services/axios.js';
 
 const guests = ref([]);
+const currentPage = ref(1);
+const lastPage = ref(1);
+
+const search = ref('');
+const loading = ref(false);
 
 const loadGuest = async () => {
+
+    loading.value = true;
+
     try {
-        const response = await api.get('/guests');
+
+        const response = await api.get('/guests', {
+            params : {
+                search: search.value
+            }
+        });
+
         guests.value = response.data.data;
+
     } catch (err) {
         console.error('Error al cargar los invitados:', err);
+    }finally {
+        loading.value = false;
     }
+};
+
+let timeout = null;
+
+const debounceLoadGuests = () => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+        loadGuest();
+    }, 500); // Ajusta el tiempo de espera según tus necesidades
 };
 
 onMounted(() => {
