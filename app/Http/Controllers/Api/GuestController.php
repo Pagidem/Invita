@@ -29,7 +29,7 @@ class GuestController extends Controller
             orWhere('email', 'like', "%{$search}%")->
             orWhere('phone', 'like', "%{$search}%");
 
-        })->orderByDesc('id')->paginate($perPage)->withQueryString();
+        })->orderBy('id')->paginate($perPage)->withQueryString();
 
         //$guest = Guest::orderBy('id')->paginate(10);
 

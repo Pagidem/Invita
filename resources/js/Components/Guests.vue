@@ -16,23 +16,26 @@
                         </p>
                     </div>
 
-                    <button class="btn btn-primary">
+                    <button 
+                    class="btn btn-primary"
+                    @click="openCreateModal"
+                    >
                         Nuevo invitado
                     </button>
 
-                    <div class="row mb-3 mt-3">
-                        <div class="col-md-4">
-                            <input
-                                v-model="search"
-                                class="form-control"
-                                type="text"
-                                placeholder="Buscar invitado..."
-                                @input="debouncedSearch"
-                            >
-                        </div>
-                    </div>
+                    
 
 
+                </div>
+
+                <div class="col-md-12">
+                    <input
+                    v-model="search"
+                    class="form-control"
+                     type="text"
+                    placeholder="Buscar invitado..."
+                    @input="debounceLoadGuests"
+                    >
                 </div>
 
                 
@@ -79,12 +82,162 @@
 
                     </table>
 
+                    <div class="d-flex justify-content-center mt-4">
+
+                        <button
+                            class="btn btn-outline-primary me-2"
+                            :disabled="currentPage <= 1"
+                            @click="changePage(currentPage - 1)"
+                        >
+                            Anterior
+                        </button>
+
+                        <span class="align-self-center">
+                            Página {{ currentPage }} de {{ lastPage }}
+                        </span>
+
+                        <button
+                            class="btn btn-outline-primary ms-2"
+                            :disabled="currentPage >= lastPage"
+                            @click="changePage(currentPage + 1)"
+                        >
+                            Siguiente
+                        </button>
+
+                    </div>
+
+                    
+
                 </div>
 
             </div>
 
         </div>
     </AppLayout>
+
+
+    <div
+        v-if="showModal"
+        class="modal fade show"
+        style="display:block;background:rgba(0,0,0,.5)"
+    >
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        Nuevo Invitado
+                    </h5>
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        @click="showModal = false"
+                    >
+                    </button>
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Nombre
+                        </label>
+
+                        <input
+                            v-model="form.first_name"
+                            type="text"
+                            class="form-control"
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Apellido
+                        </label>
+
+                        <input
+                            v-model="form.last_name"
+                            type="text"
+                            class="form-control"
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Email
+                        </label>
+
+                        <input
+                            v-model="form.email"
+                            type="email"
+                            class="form-control"
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Teléfono
+                        </label>
+
+                        <input
+                            v-model="form.phone"
+                            type="text"
+                            class="form-control"
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Invitaciones
+                        </label>
+
+                        <input
+                            v-model="form.invitations"
+                            type="number"
+                            class="form-control"
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Notas
+                        </label>
+
+                        <input
+                            v-model="form.notes"
+                            type="text"
+                            class="form-control"
+                        >
+                    </div>
+
+                    
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button
+                        class="btn btn-secondary"
+                        @click="showModal = false"
+                    >
+                        Cancelar
+                    </button>
+
+                    <button
+                        class="btn btn-primary"
+                        @click="saveGuest"
+                    >
+                        Guardar
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+</div>
+
+
     
 </template>
 
@@ -106,29 +259,89 @@ const loadGuest = async () => {
 
     try {
 
+        console.debug('Calling /guests with', { search: search.value, page: currentPage.value });
         const response = await api.get('/guests', {
             params : {
-                search: search.value
+                search: search.value,
+                page : currentPage.value
             }
         });
 
-        guests.value = response.data.data;
+        console.debug('Received response for /guests', response.data);
+        guests.value = response.data.data || [];
+        const meta = response.data.meta || {};
+        currentPage.value = Number(meta.current_page) || 1;
+        lastPage.value = Number(meta.last_page) || 1;
+        console.debug('Pagination:', { currentPage: currentPage.value, lastPage: lastPage.value, meta });
 
     } catch (err) {
         console.error('Error al cargar los invitados:', err);
-    }finally {
+    } finally {
         loading.value = false;
     }
 };
 
 let timeout = null;
 
+const changePage = (page) => {
+    let p = Number(page) || 1;
+    if (p < 1) p = 1;
+    if (lastPage.value && p > lastPage.value) p = lastPage.value;
+    currentPage.value = p;
+    loadGuest();
+}
+
 const debounceLoadGuests = () => {
     clearTimeout(timeout);
     timeout = setTimeout(() => {
+        currentPage.value = 1;
         loadGuest();
-    }, 500); // Ajusta el tiempo de espera según tus necesidades
+    }, 200); // Ajusta el tiempo de espera según tus necesidades
 };
+
+const showModal = ref (false);
+
+const form = ref({
+    ci: '',
+    first_name: '',
+    last_name: '',
+    phone: '',
+    email: '',
+    invitations: '',
+    notes: '',
+});
+
+
+const openCreateModal = () => {
+    form.value = {
+        ci: '',
+        first_name: '',
+        last_name: '',
+        phone: '',
+        email: '',
+        invitations: '',
+        notes: '',
+    }
+
+    showModal.value = true;
+};
+
+const saveGuest = async () => {
+    try {
+        await api.post('/guests', form.value);
+        
+        showModal.value = false;
+
+        await loadGuest();
+
+
+    } catch (err) {
+        console.error('Error saving guest:', err);
+        alert('Error al guardar el invitado. Por favor, inténtalo de nuevo.');
+    }
+};
+
+
 
 onMounted(() => {
     loadGuest();
