@@ -8,6 +8,7 @@ use App\Models\Guest;
 use App\Http\Resources\GuestResource;
 use App\Http\Requests\StoreGuestRequest;
 use App\Http\Requests\UpdateGuestRequest;
+use Illuminate\Database\QueryException;
 
 
 class GuestController extends Controller
@@ -41,13 +42,22 @@ class GuestController extends Controller
      */
     public function store(StoreGuestRequest $request)
     {
+        try {
+            $guest = Guest::create($request->validated());
 
-        $guest = Guest::create($request->validated());
+            return response()->json([
+                'message' => 'Invitado registrado',
+                'data' => new GuestResource($guest),
+            ], 201);
+        } catch (QueryException $e) {
+            if ($e->getCode() === '23000') {
+                return response()->json([
+                    'message' => 'La cédula ya está registrada.',
+                ], 409);
+            }
 
-        return response()->json([
-            'message' => 'Invitado registrado',
-            'data' => new GuestResource($guest),
-        ], 201);
+            throw $e;
+        }
     }
 
     /**

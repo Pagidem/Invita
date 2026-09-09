@@ -141,6 +141,18 @@
 
                     <div class="mb-3">
                         <label class="form-label">
+                            Cédula / CI
+                        </label>
+
+                        <input
+                            v-model="form.ci"
+                            type="text"
+                            class="form-control"
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
                             Nombre
                         </label>
 
@@ -307,7 +319,7 @@ const form = ref({
     last_name: '',
     phone: '',
     email: '',
-    invitations: '',
+    invitations: 1,
     notes: '',
 });
 
@@ -319,7 +331,7 @@ const openCreateModal = () => {
         last_name: '',
         phone: '',
         email: '',
-        invitations: '',
+        invitations: 1,
         notes: '',
     }
 
@@ -328,16 +340,29 @@ const openCreateModal = () => {
 
 const saveGuest = async () => {
     try {
-        await api.post('/guests', form.value);
-        
-        showModal.value = false;
+        await api.post('/guests', {
+            ...form.value,
+            invitations: Number(form.value.invitations || 1),
+        });
 
+        alert("Invitado guardado exitosamente.");
+
+        showModal.value = false;
         await loadGuest();
 
 
     } catch (err) {
         console.error('Error saving guest:', err);
-        alert('Error al guardar el invitado. Por favor, inténtalo de nuevo.');
+        const serverMessage = err?.response?.data?.message;
+        const validationErrors = err?.response?.data?.errors;
+
+        if (validationErrors) {
+            const firstError = Object.values(validationErrors)[0]?.[0];
+            alert(firstError || 'Hay errores en los datos del invitado.');
+            return;
+        }
+
+        alert(serverMessage || 'Error al guardar el invitado. Por favor, inténtalo de nuevo.');
     }
 };
 
