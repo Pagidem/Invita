@@ -55,6 +55,7 @@
                                 <th>Nombres</th>
                                 <th>Apellidos</th>
                                 <th>Telefono</th>
+                                <th width="150">Acciones</th>
                             </tr>
                         </thead>
 
@@ -75,6 +76,18 @@
                                 <td>
                                  {{ guest.phone }}
                                 </td>
+
+                                <td>
+                                
+                                    <button
+                                        class="btn btn-sm btn-outline-primary me-2" 
+                                        @click="editGuest(guest)"
+                                    >
+                                        Editar
+                                    </button>
+                                </td>
+
+                                
 
                                 
                             </tr>
@@ -126,7 +139,7 @@
 
                 <div class="modal-header">
                     <h5 class="modal-title">
-                        Nuevo Invitado
+                        {{ isEditing ? 'Editar Invitado' : 'Nuevo Invitado' }}
                     </h5>
 
                     <button
@@ -323,8 +336,25 @@ const form = ref({
     notes: '',
 });
 
+const isEditing = ref(false);
+const editingGuestId = ref(null);
+
+
+const editGuest = (guest) => {
+    
+    isEditing.value = true;
+    editingGuestId.value = guest.id;
+
+    form.value = { ...guest };
+
+    showModal.value = true;
+};
 
 const openCreateModal = () => {
+
+    isEditing.value = false;
+    editingGuestId.value = null;
+
     form.value = {
         ci: '',
         first_name: '',
@@ -339,32 +369,36 @@ const openCreateModal = () => {
 };
 
 const saveGuest = async () => {
+
     try {
-        await api.post('/guests', {
-            ...form.value,
-            invitations: Number(form.value.invitations || 1),
-        });
 
-        alert("Invitado guardado exitosamente.");
+        if (isEditing.value) {
 
-        showModal.value = false;
-        await loadGuest();
+            await api.put(
+                `/guests/${editingGuestId.value}`,
+                form.value
+            )
 
+        } else {
 
-    } catch (err) {
-        console.error('Error saving guest:', err);
-        const serverMessage = err?.response?.data?.message;
-        const validationErrors = err?.response?.data?.errors;
-
-        if (validationErrors) {
-            const firstError = Object.values(validationErrors)[0]?.[0];
-            alert(firstError || 'Hay errores en los datos del invitado.');
-            return;
+            await api.post(
+                '/guests',
+                form.value
+            )
         }
 
-        alert(serverMessage || 'Error al guardar el invitado. Por favor, inténtalo de nuevo.');
+        alert('Datos actualizados!');
+
+        showModal.value = false
+
+        await loadGuest()
+
+    } catch (error) {
+
+        console.error(error)
+
     }
-};
+}
 
 
 
