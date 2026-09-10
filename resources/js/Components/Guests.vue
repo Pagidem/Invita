@@ -44,83 +44,13 @@
                 </div>
 
                 <div v-else class="table-responsive">
-
-                   
-
-                    <table class="table table-hover align-middle mb-0">
-
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Nombres</th>
-                                <th>Apellidos</th>
-                                <th>Telefono</th>
-                                <th width="150">Acciones</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            <tr v-for="guest in guests" :key="guest.id">
-                                <td>
-                                 {{ guest.id }}
-                                </td>
-
-                                <td>
-                                 {{ guest.first_name }}
-                                </td>
-
-                                <td>
-                                 {{ guest.last_name }}
-                                </td>
-
-                                <td>
-                                 {{ guest.phone }}
-                                </td>
-
-                                <td>
-                                
-                                    <button
-                                        class="btn btn-sm btn-outline-primary me-2" 
-                                        @click="editGuest(guest)"
-                                    >
-                                        Editar
-                                    </button>
-                                </td>
-
-                                
-
-                                
-                            </tr>
-                        </tbody>
-
-                    </table>
-
-                    <div class="d-flex justify-content-center mt-4">
-
-                        <button
-                            class="btn btn-outline-primary me-2"
-                            :disabled="currentPage <= 1"
-                            @click="changePage(currentPage - 1)"
-                        >
-                            Anterior
-                        </button>
-
-                        <span class="align-self-center">
-                            Página {{ currentPage }} de {{ lastPage }}
-                        </span>
-
-                        <button
-                            class="btn btn-outline-primary ms-2"
-                            :disabled="currentPage >= lastPage"
-                            @click="changePage(currentPage + 1)"
-                        >
-                            Siguiente
-                        </button>
-
-                    </div>
-
                     
-
+                    <GuestTable
+                            :guests="guests"
+                            :current-page="currentPage"
+                            @edit-guest="editGuest"
+                            @change-page="changePage"
+                        />
                 </div>
 
             </div>
@@ -134,133 +64,21 @@
         class="modal fade show"
         style="display:block;background:rgba(0,0,0,.5)"
     >
+    
         <div class="modal-dialog">
             <div class="modal-content">
 
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        {{ isEditing ? 'Editar Invitado' : 'Nuevo Invitado' }}
-                    </h5>
-
-                    <button
-                        type="button"
-                        class="btn-close"
-                        @click="showModal = false"
-                    >
-                    </button>
-                </div>
-
-                <div class="modal-body">
-
-                    <div class="mb-3">
-                        <label class="form-label">
-                            Cédula / CI
-                        </label>
-
-                        <input
-                            v-model="form.ci"
-                            type="text"
-                            class="form-control"
-                        >
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">
-                            Nombre
-                        </label>
-
-                        <input
-                            v-model="form.first_name"
-                            type="text"
-                            class="form-control"
-                        >
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">
-                            Apellido
-                        </label>
-
-                        <input
-                            v-model="form.last_name"
-                            type="text"
-                            class="form-control"
-                        >
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">
-                            Email
-                        </label>
-
-                        <input
-                            v-model="form.email"
-                            type="email"
-                            class="form-control"
-                        >
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">
-                            Teléfono
-                        </label>
-
-                        <input
-                            v-model="form.phone"
-                            type="text"
-                            class="form-control"
-                        >
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">
-                            Invitaciones
-                        </label>
-
-                        <input
-                            v-model="form.invitations"
-                            type="number"
-                            class="form-control"
-                        >
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">
-                            Notas
-                        </label>
-
-                        <input
-                            v-model="form.notes"
-                            type="text"
-                            class="form-control"
-                        >
-                    </div>
-
-                    
-
-                </div>
-
-                <div class="modal-footer">
-
-                    <button
-                        class="btn btn-secondary"
-                        @click="showModal = false"
-                    >
-                        Cancelar
-                    </button>
-
-                    <button
-                        class="btn btn-primary"
-                        @click="saveGuest"
-                    >
-                        Guardar
-                    </button>
-
-                </div>
+                <GuestModal
+                    v-model:showModal="showModal"
+                    v-model:form="form"
+                    :is-editing="isEditing"
+                    @save-guest="saveGuest"
+                />
 
             </div>
         </div>
-</div>
+        
+    </div>
 
 
     
@@ -270,6 +88,8 @@
 import { ref, onMounted } from 'vue';
 import AppLayout from './AppLayout.vue';
 import api from '../Services/axios.js';
+import GuestTable from './guests/GuestTable.vue';
+import GuestModal from './guests/GuestModal.vue';
 
 const guests = ref([]);
 const currentPage = ref(1);
@@ -379,15 +199,19 @@ const saveGuest = async () => {
                 form.value
             )
 
+            alert('Datos actualizados!');
+
         } else {
 
             await api.post(
                 '/guests',
                 form.value
             )
+
+            alert('Invitado registrado!');
         }
 
-        alert('Datos actualizados!');
+        
 
         showModal.value = false
 
