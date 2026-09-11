@@ -22,13 +22,12 @@ class GuestFactory extends Factory
             'ci' => $this->faker->unique()->numerify('#########'),
             'first_name' => $this->faker->firstName(),
             'last_name' => $this->faker->lastName(),
-            
+
             'phone' => $this->faker->numerify('#########'),
             'email' => $this->faker->unique()->safeEmail(),
             'invitations' => $this->faker->numberBetween(1, 5),
-
+            'confirmacion' => $this->faker->boolean(70),
             'notes' => $this->faker->sentence(),
-
         ];
     }
 }

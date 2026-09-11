@@ -96,6 +96,22 @@
 
                     <div class="mb-3">
                         <label class="form-label">
+                            Confirmación de asistencia
+                        </label>
+
+                        <select
+                            :value="form.confirmacion || 'pendiente'"
+                            @change="e => updateField('confirmacion', e.target.value)"
+                            class="form-select"
+                        >
+                            <option value="pendiente">Pendiente</option>
+                            <option value="confirmado">Confirmado</option>
+                            <option value="cancelado">Cancelado</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
                             Notas
                         </label>
 
@@ -135,7 +151,7 @@ import { toRef } from 'vue'
 
 const props = defineProps({
     showModal: { type: Boolean, default: false },
-    form: { type: Object, default: () => ({ ci: '', first_name: '', last_name: '', phone: '', email: '', invitations: 1, notes: '' }) },
+    form: { type: Object, default: () => ({ ci: '', first_name: '', last_name: '', phone: '', email: '', invitations: 1, confirmacion: 'pendiente', notes: '' }) },
     isEditing: { type: Boolean, default: false },
 })
 

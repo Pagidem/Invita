@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('email', 150);
 
             $table->unsignedTinyInteger('invitations')->default(1);
+            $table->boolean('confirmacion')->default(false);
 
             $table->text('notes')->nullable();
 

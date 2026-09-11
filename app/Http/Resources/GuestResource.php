@@ -21,10 +21,11 @@ class GuestResource extends JsonResource
             'last_name' => $this->last_name,
 
             'full_name' => $this->first_name . ' ' . $this->last_name,
-            
+
             'phone' => $this->phone,
             'email' => $this->email,
             'invitations' => $this->invitations,
+            'confirmacion' => $this->confirmacion ?? 'pendiente',
             'notes' => $this->notes,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

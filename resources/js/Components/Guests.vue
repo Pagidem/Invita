@@ -48,7 +48,10 @@
                     <GuestTable
                             :guests="guests"
                             :current-page="currentPage"
+                            :last-page="lastPage"
                             @edit-guest="editGuest"
+                            @delete-guest="deleteGuest"
+                            @update-confirmacion="updateConfirmation"
                             @change-page="changePage"
                         />
                 </div>
@@ -108,7 +111,8 @@ const loadGuest = async () => {
         const response = await api.get('/guests', {
             params : {
                 search: search.value,
-                page : currentPage.value
+                page : currentPage.value,
+                per_page: 15
             }
         });
 
@@ -146,6 +150,15 @@ const debounceLoadGuests = () => {
 
 const showModal = ref (false);
 
+const normalizeStatus = (value) => {
+    const statusOrder = ['pendiente', 'confirmado', 'cancelado'];
+
+    if (statusOrder.includes(value)) return value;
+    if (value === true || value === 1) return 'confirmado';
+    if (value === false || value === 0) return 'pendiente';
+    return 'pendiente';
+};
+
 const form = ref({
     ci: '',
     first_name: '',
@@ -153,6 +166,7 @@ const form = ref({
     phone: '',
     email: '',
     invitations: 1,
+    confirmacion: 'pendiente',
     notes: '',
 });
 
@@ -165,7 +179,10 @@ const editGuest = (guest) => {
     isEditing.value = true;
     editingGuestId.value = guest.id;
 
-    form.value = { ...guest };
+    form.value = {
+        ...guest,
+        confirmacion: normalizeStatus(guest.confirmacion),
+    };
 
     showModal.value = true;
 };
@@ -182,6 +199,7 @@ const openCreateModal = () => {
         phone: '',
         email: '',
         invitations: 1,
+        confirmacion: 'pendiente',
         notes: '',
     }
 
@@ -191,12 +209,16 @@ const openCreateModal = () => {
 const saveGuest = async () => {
 
     try {
+        const payload = {
+            ...form.value,
+            confirmacion: normalizeStatus(form.value.confirmacion),
+        };
 
         if (isEditing.value) {
 
             await api.put(
                 `/guests/${editingGuestId.value}`,
-                form.value
+                payload
             )
 
             alert('Datos actualizados!');
@@ -205,13 +227,11 @@ const saveGuest = async () => {
 
             await api.post(
                 '/guests',
-                form.value
+                payload
             )
 
             alert('Invitado registrado!');
         }
-
-        
 
         showModal.value = false
 
@@ -224,7 +244,40 @@ const saveGuest = async () => {
     }
 }
 
+const deleteGuest = async (guest) => {
+    if (!guest?.id) return;
 
+    const confirmed = window.confirm(`¿Deseas eliminar a ${guest.first_name} ${guest.last_name}?`);
+
+    if (!confirmed) return;
+
+    try {
+        await api.delete(`/guests/${guest.id}`);
+        alert('Invitado eliminado!');
+        await loadGuest();
+    } catch (error) {
+        console.error('Error al eliminar el invitado:', error);
+        alert('No se pudo eliminar el invitado.');
+    }
+};
+
+const statusOrder = ['pendiente', 'confirmado', 'cancelado'];
+
+const updateConfirmation = async (guest) => {
+    if (!guest?.id) return;
+
+    try {
+        await api.put(`/guests/${guest.id}`, {
+            ...guest,
+            confirmacion: normalizeStatus(guest.confirmacion),
+        });
+
+        await loadGuest();
+    } catch (error) {
+        console.error('Error al actualizar la confirmación:', error);
+        alert('No se pudo actualizar la confirmación.');
+    }
+};
 
 onMounted(() => {
     loadGuest();

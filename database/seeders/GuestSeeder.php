@@ -13,6 +13,8 @@ class GuestSeeder extends Seeder
      */
     public function run(): void
     {
-        Guest::factory()->count(50)->create();
+        Guest::factory()->count(50)->create([
+            'confirmacion' => fake()->boolean(70),
+        ]);
     }
 }

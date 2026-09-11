@@ -29,6 +29,7 @@ class UpdateGuestRequest extends FormRequest
             'phone' => ['nullable', 'string', 'max:20'],
             'email' => ['nullable', 'email', 'max:150'],
             'invitations' => ['required', 'integer', 'min:1'],
+            'confirmacion' => ['nullable', 'string', 'in:pendiente,confirmado,cancelado'],
             'notes' => ['nullable', 'string'],
         ];
     }

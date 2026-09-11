@@ -8,6 +8,7 @@
                                 <th>Nombres</th>
                                 <th>Apellidos</th>
                                 <th>Telefono</th>
+                                <th>Confirmación</th>
                                 <th width="150">Acciones</th>
                             </tr>
                         </thead>
@@ -31,18 +32,33 @@
                                 </td>
 
                                 <td>
-                                
+                                    <select
+                                        class="form-select form-select-sm"
+                                        :class="statusSelectClass(guest.confirmacion)"
+                                        :value="normalizeStatus(guest.confirmacion)"
+                                        @change="updateConfirmation(guest, $event.target.value)"
+                                    >
+                                        <option value="pendiente">Pendiente</option>
+                                        <option value="confirmado">Confirmado</option>
+                                        <option value="cancelado">Cancelado</option>
+                                    </select>
+                                </td>
+
+                                <td>
                                     <button
                                         class="btn btn-sm btn-outline-primary me-2" 
                                         @click="editGuest(guest)"
                                     >
                                         Editar
                                     </button>
+
+                                    <button
+                                        class="btn btn-sm btn-outline-danger"
+                                        @click="deleteGuest(guest)"
+                                    >
+                                        Eliminar
+                                    </button>
                                 </td>
-
-                                
-
-                                
                             </tr>
                         </tbody>
 
@@ -86,10 +102,32 @@ const props = defineProps({
 
 const { guests, currentPage, lastPage } = toRefs(props)
 
-const emit = defineEmits(['edit-guest', 'change-page'])
+const emit = defineEmits(['edit-guest', 'delete-guest', 'update-confirmacion', 'change-page'])
+
+const statusMap = {
+    pendiente: { label: 'Pendiente', className: 'border-warning text-warning' },
+    confirmado: { label: 'Confirmado', className: 'border-success text-success' },
+    cancelado: { label: 'Cancelado', className: 'border-danger text-danger' },
+}
+
+const normalizeStatus = (status) => statusMap[status] ? status : 'pendiente'
+
+const statusLabel = (status) => statusMap[normalizeStatus(status)]?.label || 'Pendiente'
+const statusSelectClass = (status) => statusMap[normalizeStatus(status)]?.className || 'border-warning text-warning'
 
 const editGuest = (guest) => {
     emit('edit-guest', guest)
+}
+
+const deleteGuest = (guest) => {
+    emit('delete-guest', guest)
+}
+
+const updateConfirmation = (guest, value) => {
+    emit('update-confirmacion', {
+        ...guest,
+        confirmacion: value,
+    })
 }
 
 const changePage = (page) => {
