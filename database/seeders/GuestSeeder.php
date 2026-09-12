@@ -14,7 +14,8 @@ class GuestSeeder extends Seeder
     public function run(): void
     {
         Guest::factory()->count(50)->create([
-            'confirmacion' => fake()->boolean(70),
+            'confirmacion' => fake()->randomElement(['pendiente', 'confirmado', 'cancelado']),
+            'companions' => fake()->numberBetween(0, 3),
         ]);
     }
 }

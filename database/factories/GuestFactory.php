@@ -26,7 +26,8 @@ class GuestFactory extends Factory
             'phone' => $this->faker->numerify('#########'),
             'email' => $this->faker->unique()->safeEmail(),
             'invitations' => $this->faker->numberBetween(1, 5),
-            'confirmacion' => $this->faker->boolean(70),
+            'confirmacion' => $this->faker->randomElement(['pendiente', 'confirmado', 'cancelado']),
+            'companions' => $this->faker->numberBetween(0, 3),
             'notes' => $this->faker->sentence(),
         ];
     }
