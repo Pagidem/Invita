@@ -25,6 +25,8 @@ class GuestResource extends JsonResource
             'phone' => $this->phone,
             'email' => $this->email,
             'invitations' => $this->invitations,
+            'confirmation_token' => $this->confirmation_token,
+            'companions' => (int) ($this->companions ?? 0),
             'confirmacion' => $this->confirmacion ?? 'pendiente',
             'notes' => $this->notes,
             'created_at' => $this->created_at,

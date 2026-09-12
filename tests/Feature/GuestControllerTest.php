@@ -34,6 +34,32 @@ class GuestControllerTest extends TestCase
         ]);
     }
 
+    public function test_it_generates_a_confirmation_token_and_returns_it(): void
+    {
+        $response = $this->postJson('/api/guests', [
+            'ci' => '999999',
+            'first_name' => 'María',
+            'last_name' => 'López',
+            'phone' => '79000000',
+            'email' => 'maria@test.com',
+            'invitations' => 2,
+            'confirmacion' => 'pendiente',
+            'notes' => 'Prueba de token',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('data.confirmacion', 'pendiente')
+            ->assertJsonPath('data.confirmation_token', fn ($token) => is_string($token) && filled($token));
+
+        $this->assertDatabaseHas('guests', [
+            'ci' => '999999',
+        ]);
+
+        $guest = \App\Models\Guest::where('ci', '999999')->first();
+        $this->assertNotNull($guest->confirmation_token);
+        $this->assertMatchesRegularExpression('/^[0-9a-fA-F-]{36}$/', $guest->confirmation_token);
+    }
+
     public function test_it_returns_a_user_friendly_error_when_ci_already_exists(): void
     {
         $this->postJson('/api/guests', [
