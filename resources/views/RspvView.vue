@@ -38,6 +38,7 @@
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 aria-label="Abrir ubicación en Google Maps"
+                                                title="Abrir ubicación en Google Maps"
                                             >
                                                 📍
                                             </a>
@@ -301,18 +302,20 @@ onMounted(() => {
 }
 
 .location-inline {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 0.45rem;
     justify-content: flex-end;
-    flex-wrap: nowrap;
+    gap: 0.45rem;
     min-width: 0;
+    flex: 1;
 }
 
 .location-inline strong {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    display: inline-block;
+    max-width: 100%;
 }
 
 .gps-link {
@@ -327,6 +330,7 @@ onMounted(() => {
     text-decoration: none;
     font-size: 1rem;
     flex-shrink: 0;
+    margin-left: 0.1rem;
 }
 
 .gps-btn {

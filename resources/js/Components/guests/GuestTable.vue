@@ -9,7 +9,7 @@
                                 <th>Apellidos</th>
                                 <th>Telefono</th>
                                 <th>Confirmación</th>
-                                <th width="150">Acciones</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
 
@@ -45,6 +45,14 @@
                                 </td>
 
                                 <td>
+                                    <button
+                                        class="btn btn-sm btn-outline-success me-2"
+                                        @click="shareInvitation(guest)"
+                                        title="Copiar mensaje para WhatsApp"
+                                    >
+                                        Copiar WhatsApp
+                                    </button>
+
                                     <button
                                         class="btn btn-sm btn-outline-primary me-2" 
                                         @click="editGuest(guest)"
@@ -132,6 +140,39 @@ const updateConfirmation = (guest, value) => {
 
 const changePage = (page) => {
     emit('change-page', page)
+}
+
+const shareInvitation = async (guest) => {
+    if (!guest) {
+        return
+    }
+
+    const guestName = guest.first_name || 'invitado'
+    const message = `*¡Hola ${guestName}! 👋*\n\n` +
+        `Te invitamos a confirmar tu asistencia a nuestra celebración.\n\n` +
+        `*Confirmación de asistencia*\n` +
+        `• Si asistirás, confirma tu respuesta\n` +
+        `• Si no podrás acompañarnos, también puedes responder\n\n` +
+        `_Gracias por acompañarnos y por compartir este momento con nosotros._`
+
+    try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(message)
+            alert('Mensaje copiado al portapapeles. Ahora puedes pegarlo en WhatsApp.');
+            return
+        }
+
+        const textArea = document.createElement('textarea')
+        textArea.value = message
+        textArea.style.position = 'fixed'
+        textArea.style.opacity = '0'
+        document.body.appendChild(textArea)
+        textArea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textArea)
+    } catch (error) {
+        console.error('No se pudo copiar el texto para WhatsApp:', error)
+    }
 }
 
 </script>
