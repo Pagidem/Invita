@@ -60,6 +60,22 @@ class GuestControllerTest extends TestCase
         $this->assertMatchesRegularExpression('/^[0-9a-fA-F-]{36}$/', $guest->confirmation_token);
     }
 
+    public function test_it_returns_guest_data_for_a_valid_rsvp_token(): void
+    {
+        $guest = \App\Models\Guest::factory()->create([
+            'first_name' => 'Ana',
+            'last_name' => 'García',
+            'confirmation_token' => '123e4567-e89b-12d3-a456-426614174000',
+        ]);
+
+        $response = $this->getJson('/api/rsvp/' . $guest->confirmation_token);
+
+        $response->assertOk()
+            ->assertJsonPath('first_name', 'Ana')
+            ->assertJsonPath('last_name', 'García')
+            ->assertJsonPath('full_name', 'Ana García');
+    }
+
     public function test_it_returns_a_user_friendly_error_when_ci_already_exists(): void
     {
         $this->postJson('/api/guests', [

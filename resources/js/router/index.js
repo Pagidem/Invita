@@ -33,6 +33,11 @@ const routes = [
             requiresAuth: true,
         },
     },
+    {
+        path: '/rsvp/:token',
+        name: 'rsvp',
+        component: () => import('../../views/RspvView.vue'),
+    },
 ];
 
 const router = createRouter({

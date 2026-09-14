@@ -15,20 +15,19 @@ class GuestRsvpController extends Controller
             ->firstOrFail();
 
         return response()->json([
-            'data' => [
-                'id' => $guest->id,
-                'ci' => $guest->ci,
-                'first_name' => $guest->first_name,
-                'last_name' => $guest->last_name,
-                'full_name' => trim($guest->first_name . ' ' . $guest->last_name),
-                'phone' => $guest->phone,
-                'email' => $guest->email,
-                'invitations' => $guest->invitations,
-                'confirmation_token' => $guest->confirmation_token,
-                'companions' => (int) ($guest->companions ?? 0),
-                'confirmacion' => $guest->confirmacion ?? 'pendiente',
-                'notes' => $guest->notes,
-            ]
+            'id' => $guest->id,
+            'ci' => $guest->ci,
+            'first_name' => $guest->first_name,
+            'last_name' => $guest->last_name,
+            'full_name' => trim($guest->first_name . ' ' . $guest->last_name),
+            'phone' => $guest->phone,
+            'email' => $guest->email,
+            'invitations' => $guest->invitations,
+            'confirmation_token' => $guest->confirmation_token,
+            'companions' => (int) ($guest->companions ?? 0),
+            'confirmacion' => $guest->confirmacion ?? 'pendiente',
+            'confirmation_status' => $guest->confirmacion ?? 'pending',
+            'notes' => $guest->notes,
         ]);
     }
 
@@ -40,42 +39,65 @@ class GuestRsvpController extends Controller
             ->where('confirmation_token', $token)
             ->firstOrFail();
 
-        $statusInput = $request->input('confirmacion', $request->input('confirmation_status', 'pendiente'));
+        $statusInput = $request->input('confirmacion', $request->input('confirmation_status'));
 
-        $statusMap = [
-            'confirmed' => 'confirmado',
-            'confirmado' => 'confirmado',
-            'declined' => 'cancelado',
-            'cancelado' => 'cancelado',
-            'pendiente' => 'pendiente',
-        ];
+        if (blank($statusInput)) {
+            $status = 'pendiente';
+        } else {
+            $statusMap = [
+                'confirmed' => 'confirmado',
+                'confirmado' => 'confirmado',
+                'declined' => 'cancelado',
+                'cancelado' => 'cancelado',
+                'pendiente' => 'pendiente',
+                'pending' => 'pendiente',
+            ];
 
-        $status = $statusMap[$statusInput] ?? $statusInput;
+            $status = $statusMap[strtolower((string) $statusInput)] ?? $statusInput;
+        }
 
         $validated = $request->validate([
             'confirmacion' => [
                 'nullable',
                 'string',
-                'in:pendiente,confirmado,cancelado,confirmed,declined'
+                'in:pendiente,confirmado,cancelado,confirmed,declined,pending'
             ],
             'confirmation_status' => [
                 'nullable',
                 'string',
-                'in:pendiente,confirmado,cancelado,confirmed,declined'
+                'in:pendiente,confirmado,cancelado,confirmed,declined,pending'
             ],
             'companions' => [
-                'required',
+                'nullable',
                 'integer',
                 'min:0',
                 'max:10'
             ]
         ]);
 
-        $confirmedAt = in_array($status, ['confirmado', 'cancelado'], true) ? now() : null;
+        if (! in_array($status, ['confirmado', 'cancelado'], true)) {
+            $guest->update([
+                'confirmacion' => 'pendiente',
+                'companions' => 0,
+                'confirmed_at' => null,
+            ]);
+
+            return response()->json([
+                'message' => 'Respuesta pendiente',
+                'data' => [
+                    'confirmacion' => 'pendiente',
+                    'companions' => 0,
+                    'confirmed_at' => null,
+                ]
+            ]);
+        }
+
+        $confirmedAt = now();
+        $companions = (int) ($validated['companions'] ?? 0);
 
         $guest->update([
             'confirmacion' => $status,
-            'companions' => (int) $validated['companions'],
+            'companions' => $companions,
             'confirmed_at' => $confirmedAt,
         ]);
 

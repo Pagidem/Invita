@@ -31,6 +31,14 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 
+Route::get('/rsvp/{token}', [GuestRsvpController::class, 'show']);
+Route::post('/rsvp/{token}', [GuestRsvpController::class, 'confirm']);
+
+// Compatibilidad con rutas antiguas
+Route::get('/rsvp/{token}', [GuestRsvpController::class, 'show']);
+Route::post('/rsvp/{token}', [GuestRsvpController::class, 'confirm']);
+
+// Compatibilidad con rutas antiguas
 Route::get('/rvsp/{token}', [GuestRsvpController::class, 'show']);
 Route::post('/rvsp/{token}', [GuestRsvpController::class, 'confirm']);
 
