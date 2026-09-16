@@ -1,48 +1,36 @@
 
 <template>
-    <div class="min-vh-100 bg-light">
+    <div class="app-shell">
+        <header class="topbar">
+            <div class="topbar-inner">
+                <div class="brand-wrap">
+                    <span class="brand-mark">I</span>
+                    <span class="brand-name">Gestión de invitados</span>
+                </div>
 
-        <!-- Navbar -->
-        <nav class="navbar navbar-dark bg-primary shadow-sm">
-            <div class="container-fluid">
-
-                <span class="navbar-brand mb-0 h1">
-                    Invita
-                </span>
-
-                <div class="d-flex align-items-center">
-
-                    <span v-if="user" class="text-white">
+                <div class="topbar-actions">
+                    <span v-if="user" class="user-pill">
                         {{ user.name }}
                     </span>
 
-                    <button
-                        class="btn btn-outline-light btn-sm ms-3"
-                        @click="logout"
-                    >
-                        Cerrar sesión
+                    <button class="logout-toggle" @click="logout" type="button">
+                        <span class="toggle-icon">⇠</span>
+                        <span class="toggle-text">Salir</span>
                     </button>
-
                 </div>
-
             </div>
-        </nav>
+        </header>
 
-        <!-- Contenido -->
-        <main class="container-fluid py-4">
+        <main class="page-content container-fluid">
+            <div class="row g-3 align-items-start">
+                <aside class="col-md-3 col-lg-2">
+                    <div class="sidebar-card">
+                        <p class="sidebar-label">Menú</p>
 
-            <div class="row">
-
-                <!-- Sidebar -->
-                <aside class="col-md-3 col-lg-2 mb-4">
-
-                    <div class="card shadow-sm">
-
-                        <div class="list-group list-group-flush">
-
+                        <nav class="sidebar-nav" aria-label="Navegación lateral">
                             <RouterLink
                                 to="/dashboard"
-                                class="list-group-item list-group-item-action"
+                                class="sidebar-link"
                                 active-class="active"
                             >
                                 Dashboard
@@ -50,29 +38,22 @@
 
                             <RouterLink
                                 to="/guests"
-                                class="list-group-item list-group-item-action"
+                                class="sidebar-link"
                                 active-class="active"
                             >
                                 Invitados
                             </RouterLink>
-
-                        </div>
-
+                        </nav>
                     </div>
-
                 </aside>
 
-                <!-- Contenido de la vista -->
                 <section class="col-md-9 col-lg-10">
-
-                    <slot />
-
+                    <div class="content-panel">
+                        <slot />
+                    </div>
                 </section>
-
             </div>
-
         </main>
-
     </div>
 </template>
 
@@ -107,3 +88,276 @@ const logout = async () => {
 };
 
 </script>
+
+<style scoped>
+:global(body) {
+    margin: 0;
+    background: linear-gradient(135deg, #f7f5f0 0%, #edf0ea 100%);
+    color: #2d463e;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+.app-shell {
+    min-height: 100vh;
+    background:
+        radial-gradient(circle at top left, rgba(170, 190, 170, 0.2), transparent 25%),
+        linear-gradient(135deg, #f7f5f0 0%, #edf0ea 100%);
+}
+
+.topbar {
+    background: rgba(135, 163, 145, 0.96);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 6px 18px rgba(88, 113, 95, 0.12);
+}
+
+.topbar-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    min-height: 54px;
+    padding: 8px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.brand-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.brand-mark {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, #f0dcb0, #d9bb74);
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 700;
+    font-family: Georgia, 'Times New Roman', serif;
+    box-shadow: 0 8px 16px rgba(185, 149, 83, 0.2);
+}
+
+.brand-name {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: clamp(1.3rem, 1.8vw, 1.7rem);
+    line-height: 1;
+    color: #fff;
+    letter-spacing: -0.04em;
+    white-space: nowrap;
+}
+
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.user-pill {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.9);
+    border-radius: 999px;
+    padding: 5px 10px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.logout-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    border-radius: 999px;
+    padding: 5px 10px 5px 8px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+.logout-toggle:hover {
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateY(-1px);
+}
+
+.toggle-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    font-size: 0.9rem;
+}
+
+.toggle-text {
+    line-height: 1;
+}
+
+.page-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 22px 18px 28px;
+}
+
+.sidebar-card {
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(120, 147, 128, 0.18);
+    border-radius: 18px;
+    box-shadow: 0 10px 24px rgba(95, 120, 104, 0.08);
+    padding: 16px 14px;
+    min-height: 200px;
+}
+
+.sidebar-label {
+    margin: 0 0 12px;
+    color: #6d8878;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sidebar-link {
+    display: block;
+    width: 100%;
+    padding: 11px 12px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: #425b52;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sidebar-link:hover,
+.sidebar-link.active {
+    background: linear-gradient(135deg, rgba(176, 201, 181, 0.22), rgba(214, 228, 217, 0.2));
+    color: #2a443d;
+    box-shadow: inset 0 0 0 1px rgba(130, 160, 138, 0.18);
+}
+
+.content-panel {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(120, 147, 128, 0.12);
+    border-radius: 18px;
+    box-shadow: 0 10px 24px rgba(95, 120, 104, 0.08);
+    padding: 20px;
+    min-height: 440px;
+}
+
+@media (max-width: 767.98px) {
+    .topbar-inner {
+        min-height: 52px;
+        padding: 7px 10px;
+        gap: 8px;
+    }
+
+    .brand-wrap {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .brand-mark {
+        width: 26px;
+        height: 26px;
+        font-size: 0.95rem;
+    }
+
+    .brand-name {
+        font-size: 1.25rem;
+    }
+
+    .topbar-actions {
+        gap: 6px;
+    }
+
+    .user-pill {
+        max-width: 110px;
+        padding: 5px 8px;
+        font-size: 0.72rem;
+    }
+
+    .logout-toggle {
+        padding: 6px;
+        min-width: 32px;
+        width: 32px;
+        height: 32px;
+        justify-content: center;
+        border-radius: 50%;
+    }
+
+    .toggle-text {
+        display: none;
+    }
+
+    .page-content {
+        padding: 12px 10px 18px;
+    }
+
+    .sidebar-card {
+        min-height: auto;
+        padding: 8px 8px 10px;
+        border-radius: 14px;
+    }
+
+    .sidebar-label {
+        display: none;
+    }
+
+    .sidebar-nav {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        width: 100%;
+    }
+
+    .sidebar-link {
+        width: 100%;
+        min-width: 0;
+        text-align: center;
+        padding: 9px 8px;
+        font-size: 0.8rem;
+        border-radius: 10px;
+        background: rgba(135, 163, 145, 0.08);
+        border: 1px solid rgba(135, 163, 145, 0.14);
+    }
+
+    .sidebar-link.active {
+        background: linear-gradient(135deg, rgba(135, 163, 145, 0.2), rgba(214, 228, 217, 0.28));
+        border-color: rgba(135, 163, 145, 0.22);
+    }
+
+    .content-panel {
+        min-height: auto;
+        padding: 12px;
+        border-radius: 14px;
+    }
+}
+</style>
