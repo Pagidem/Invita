@@ -22,10 +22,6 @@ const routes = [
         },
     },
     {
-        path: '/:pathMatch(.*)*', // Redirige cualquier URL inexistente al Login
-        redirect: '/login',
-    },
-    {
         path: '/guests',
         name: 'guests',
         component: () => import('../Components/Guests.vue'),
@@ -37,6 +33,10 @@ const routes = [
         path: '/rsvp/:token',
         name: 'rsvp',
         component: () => import('../../views/RspvView.vue'),
+    },
+    {
+        path: '/:pathMatch(.*)*', // Redirige cualquier URL inexistente al Login
+        redirect: '/login',
     },
 ];
 

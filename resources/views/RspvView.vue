@@ -1,6 +1,6 @@
 <template>
     <div class="page-shell">
-        <div class="container py-5">
+        <div class="container py-1">
             <div class="row justify-content-center">
                 <div class="col-md-7 col-lg-6">
                     <div class="invitation-card">
@@ -9,16 +9,16 @@
                             <h1>Tarjeta de Confirmación</h1>
                         </div>
 
-                        <div class="card-body p-4 p-md-5">
+                        <div class="card-body p-2 p-md-5">
                             <div v-if="loading" class="text-center py-4">
-                                <div class="spinner-border text-primary mb-3" role="status">
+                                <div class="spinner-border text-primary mb-1" role="status">
                                     <span class="visually-hidden">Cargando invitación...</span>
                                 </div>
                                 <p class="mb-0 text-muted">Cargando invitación...</p>
                             </div>
 
                             <div v-else>
-                                <div class="text-center mb-4">
+                                <div class="text-center mb-2">
                                     <p class="guest-label">{{ guestName ? 'Querido/a' : 'Cargando...' }}</p>
                                     <h2 class="guest-name">{{ guestName || 'Buscando invitado...' }}</h2>
                                 </div>
@@ -46,15 +46,15 @@
                                     </div>
                                 </div>
 
-                                <div class="mt-4 mb-4">
+                                <div class="mt-2 mb-2">
                                     <label class="form-label fw-semibold text-dark">¿Podrás acompañarnos?</label>
-                                    <div class="btn-group w-100" role="group" aria-label="Respuesta de asistencia">
+                                    <div class="btn-group w-100 response-group" role="group" aria-label="Respuesta de asistencia">
                                         <button
                                             type="button"
                                             class="btn option-btn"
                                             :class="form.confirmation_status === 'confirmed' ? 'btn-primary selected' : 'btn-outline-primary'"
                                             :disabled="saving"
-                                            @click="setConfirmation('confirmed')"
+                                            @click="selectConfirmation('confirmed')"
                                         >
                                             Sí, asistiré
                                         </button>
@@ -63,30 +63,41 @@
                                             class="btn option-btn"
                                             :class="form.confirmation_status === 'declined' ? 'btn-danger selected' : 'btn-outline-danger'"
                                             :disabled="saving"
-                                            @click="setConfirmation('declined')"
+                                            @click="selectConfirmation('declined')"
                                         >
                                             No podré asistir
                                         </button>
                                     </div>
                                 </div>
 
-                                <div v-if="form.confirmation_status === 'confirmed'" class="mb-4">
+                                <div v-if="form.confirmation_status === 'confirmed'" class="mb-2 companions-box">
                                     <label class="form-label fw-semibold text-dark">Cantidad de acompañantes</label>
                                     <input
                                         type="number"
                                         min="0"
                                         max="10"
-                                        class="form-control form-control-lg rounded-3"
-                                        v-model.number="form.companions"
+                                        class="form-control form-control-lg rounded-3 companions-input"
+                                        :value="form.companions"
+                                        @input="updateCompanions($event.target.value)"
                                     >
+                                    <small class="text-muted d-block mt-2">Máximo 10 personas.</small>
                                 </div>
 
-                                <div class="d-grid gap-2">
+                                <div v-if="form.confirmation_status" class="d-grid gap-2 mt-1">
                                     <button
-                                        v-if="hasExistingResponse"
+                                        class="btn btn-primary btn-lg rounded-3 register-btn"
+                                        :disabled="saving"
+                                        @click="registerResponse"
+                                    >
+                                        {{ saving ? 'Registrando...' : 'Registrar respuesta' }}
+                                    </button>
+                                </div>
+
+                                <div v-if="hasExistingResponse && !form.confirmation_status" class="d-grid gap-2">
+                                    <button
                                         class="btn btn-outline-secondary btn-lg rounded-3"
                                         :disabled="saving"
-                                        @click="setConfirmation('declined')"
+                                        @click="selectConfirmation('declined')"
                                     >
                                         Cancelar asistencia
                                     </button>
@@ -162,7 +173,7 @@ const loadGuest = async () => {
     }
 }
 
-const setConfirmation = async (status) => {
+const selectConfirmation = (status) => {
     if (!status) return
 
     form.value.confirmation_status = status
@@ -172,11 +183,15 @@ const setConfirmation = async (status) => {
     } else {
         form.value.companions = 0
     }
-
-    await saveConfirmation(status)
 }
 
-const saveConfirmation = async (status = form.value.confirmation_status) => {
+const updateCompanions = (value) => {
+    const numericValue = Number(value || 0)
+    form.value.companions = Math.min(Math.max(numericValue, 0), 10)
+}
+
+const registerResponse = async () => {
+    const status = form.value.confirmation_status
     if (!status) return
 
     saving.value = true
@@ -205,25 +220,27 @@ onMounted(() => {
 
 <style scoped>
 .page-shell {
-    min-height: 10vh;
+    min-height: 100vh;
     background:
-        radial-gradient(circle at top, rgba(214, 152, 217, 0.35), transparent 35%),
-        linear-gradient(135deg, #fffafc 0%, #f9f4ff 45%, #f3f8ff 100%);
+        radial-gradient(circle at top left, rgba(146, 179, 152, 0.18), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(184, 197, 171, 0.16), transparent 30%),
+        linear-gradient(135deg, #f8f7f3 0%, #eef5ef 42%, #f3f7f1 100%);
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 24px 12px;
 }
 
 .invitation-card {
     background: rgba(255, 255, 255, 0.94);
-    border: 1px solid rgba(145, 107, 172, 0.15);
+    border: 1px solid rgba(123, 155, 128, 0.18);
     border-radius: 28px;
-    box-shadow: 0 25px 60px rgba(87, 56, 104, 0.15);
+    box-shadow: 0 24px 60px rgba(96, 120, 101, 0.12);
     overflow: hidden;
 }
 
 .invitation-header {
-    background: linear-gradient(135deg, #7b3db5 0%, #d91f8d 100%);
+    background: linear-gradient(135deg, #7da07d 0%, #6d8f6d 42%, #a9bca1 100%);
     color: white;
     text-align: center;
     padding: 1.2rem 1rem 1rem;
@@ -234,18 +251,21 @@ onMounted(() => {
     text-transform: uppercase;
     letter-spacing: 0.15rem;
     font-size: 0.65rem;
-    opacity: 0.88;
+    opacity: 0.9;
+    font-weight: 700;
 }
 
 .invitation-header h1 {
     margin: 0;
     font-size: clamp(1.35rem, 2.2vw, 1.8rem);
     font-weight: 600;
+    font-family: Georgia, 'Times New Roman', serif;
+    letter-spacing: -0.04em;
 }
 
 .guest-label {
     margin: 0 0 0.5rem;
-    color: #7a5c8d;
+    color: #637d6a;
     text-transform: uppercase;
     letter-spacing: 0.12rem;
     font-size: 0.72rem;
@@ -256,15 +276,17 @@ onMounted(() => {
     margin: 0;
     font-size: clamp(1.9rem, 3vw, 2.5rem);
     font-weight: 700;
-    color: #2d1b3d;
+    color: #2b433d;
+    font-family: Georgia, 'Times New Roman', serif;
+    letter-spacing: -0.06em;
 }
 
 .event-details {
     display: grid;
     gap: 0.6rem;
     padding: 0.9rem 1rem;
-    background: linear-gradient(180deg, #fffafd 0%, #f8f5ff 100%);
-    border: 1px solid rgba(125, 94, 163, 0.12);
+    background: linear-gradient(180deg, rgba(248, 245, 238, 0.95), rgba(239, 245, 239, 0.9));
+    border: 1px solid rgba(120, 147, 128, 0.18);
     border-radius: 18px;
 }
 
@@ -286,12 +308,13 @@ onMounted(() => {
 }
 
 .label {
-    color: #7d6a8d;
+    color: #6d867b;
     font-size: 0.82rem;
+    font-weight: 600;
 }
 
 .event-item strong {
-    color: #2f2437;
+    color: #2f473f;
     font-weight: 600;
     text-align: right;
     line-height: 1.2;
@@ -325,8 +348,8 @@ onMounted(() => {
     width: 1.9rem;
     height: 1.9rem;
     border-radius: 50%;
-    background: rgba(123, 61, 181, 0.1);
-    color: #7b3db5;
+    background: rgba(122, 155, 128, 0.12);
+    color: #406257;
     text-decoration: none;
     font-size: 1rem;
     flex-shrink: 0;
@@ -339,27 +362,90 @@ onMounted(() => {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #7b3db5, #d91f8d);
+    background: linear-gradient(135deg, #8db094 0%, #6f9370 100%);
     border: none;
+    box-shadow: 0 10px 18px rgba(111, 147, 112, 0.2);
 }
 
 .btn-primary:hover {
-    background: linear-gradient(135deg, #6b35a2, #c7117d);
+    background: linear-gradient(135deg, #84a98d 0%, #648666 100%);
+}
+
+.response-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
 }
 
 .option-btn {
     transition: all 0.2s ease;
     font-weight: 600;
+    min-height: 52px;
+    border-radius: 12px !important;
 }
 
 .option-btn.selected {
     box-shadow: inset 0 0 0 2px rgba(255,255,255,0.55);
 }
 
+.register-btn {
+    min-height: 52px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    border-radius: 14px;
+}
+
+.companions-box {
+    padding: 1rem;
+    border: 1px solid rgba(120, 147, 128, 0.18);
+    border-radius: 16px;
+    background: rgba(244, 243, 236, 0.82);
+}
+
+.companions-input {
+    border: 1px solid rgba(120, 147, 128, 0.22);
+    background: rgba(255,255,255,0.92);
+}
+
 @media (max-width: 576px) {
+    .page-shell {
+        padding: 12px 8px;
+    }
+
+    .container {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .invitation-header {
+        padding: 1rem 0.8rem 0.9rem;
+    }
+
+    .invitation-header h1 {
+        font-size: 1.7rem;
+    }
+
+    .card-body {
+        padding: 1rem !important;
+    }
+
+    .guest-name {
+        font-size: 2.1rem;
+    }
+
+    .event-details {
+        padding: 0.8rem 0.8rem;
+    }
+
     .event-item {
         flex-direction: column;
         align-items: flex-start;
+        gap: 0.2rem;
+    }
+
+    .event-item strong {
+        text-align: left;
+        width: 100%;
     }
 
     .location-inline {
@@ -367,8 +453,19 @@ onMounted(() => {
         justify-content: space-between;
     }
 
-    .event-item strong {
-        text-align: left;
+    .response-group {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.5rem;
+    }
+
+    .option-btn,
+    .register-btn {
+        min-height: 48px;
+        font-size: 0.94rem;
+    }
+
+    .companions-box {
+        padding: 0.8rem;
     }
 }
 </style>
