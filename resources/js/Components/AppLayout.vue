@@ -76,8 +76,12 @@ import auth from '../Services/auth.js';
 const router = useRouter();
 const user = ref(null);
 
-const goToCreateGuest = () => {
-    router.push({ path: '/guests', query: { create: '1' } });
+const goToCreateGuest = async () => {
+    if (router.currentRoute.value.path !== '/guests') {
+        await router.push({ path: '/guests' });
+    }
+
+    window.dispatchEvent(new CustomEvent('open-create-guest'));
 };
 
 onMounted(async () => {

@@ -71,14 +71,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 import AppLayout from './AppLayout.vue';
 import api from '../Services/axios.js';
 import GuestTable from './guests/GuestTable.vue';
 import GuestModal from './guests/GuestModal.vue';
-
-const route = useRoute();
 
 const guests = ref([]);
 const currentPage = ref(1);
@@ -265,24 +262,17 @@ const updateConfirmation = async (guest) => {
     }
 };
 
-const openCreateFromQuery = () => {
-    if (route.query.create === '1') {
-        openCreateModal();
-    }
+const handleOpenCreateGuest = () => {
+    openCreateModal();
 };
 
-watch(
-    () => route.query.create,
-    (value) => {
-        if (value === '1') {
-            openCreateModal();
-        }
-    }
-);
-
 onMounted(() => {
+    window.addEventListener('open-create-guest', handleOpenCreateGuest);
     loadGuest();
-    openCreateFromQuery();
+});
+
+onBeforeUnmount(() => {
+    window.removeEventListener('open-create-guest', handleOpenCreateGuest);
 });
 
 
