@@ -1,114 +1,139 @@
 <template>
 
-<table class="table table-hover align-middle mb-0">
+    <div class="guest-table-container">
 
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Nombres</th>
-                                <th>Apellidos</th>
-                                <th>Telefono</th>
-                                <th>Confirmación</th>
-                                <th>Compartir</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
+        <!-- SOLO ESTA ZONA TIENE SCROLL -->
+        <div class="table-scroll-inner">
+            <table class="table table-hover align-middle mb-0 guest-table">
 
-                        <tbody>
-                            <tr v-for="guest in guests" :key="guest.id">
-                                <td>
-                                 {{ guest.id }}
-                                </td>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nombre</th>
+                        <th>Telefono</th>
+                        <th>Confirmación</th>
+                        <th>Compartir</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
 
-                                <td>
-                                 {{ guest.first_name }}
-                                </td>
+                <tbody>
+                    <tr v-for="guest in guests" :key="guest.id">
 
-                                <td>
-                                 {{ guest.last_name }}
-                                </td>
+                        <td>
+                            {{ guest.id }}
+                        </td>
 
-                                <td>
-                                 {{ guest.phone }}
-                                </td>
+                        <td>
+                            {{ guest.first_name }} {{ guest.last_name }}
+                        </td>
 
-                                <td>
-                                    <select
-                                        class="form-select form-select-sm"
-                                        :class="statusSelectClass(guest.confirmacion)"
-                                        :value="normalizeStatus(guest.confirmacion)"
-                                        @change="updateConfirmation(guest, $event.target.value)"
+                        <td>
+                            {{ guest.phone }}
+                        </td>
+
+                        <td>
+                            <select
+                                class="form-select form-select-sm"
+                                :class="statusSelectClass(guest.confirmacion)"
+                                :value="normalizeStatus(guest.confirmacion)"
+                                @change="updateConfirmation(guest, $event.target.value)"
+                            >
+                                <option value="pendiente">Pendiente</option>
+                                <option value="confirmado">Confirmado</option>
+                                <option value="cancelado">Cancelado</option>
+                            </select>
+                        </td>
+
+                        <td>
+                            <div class="share-container">
+
+                                <button
+                                    class="btn btn-sm btn-outline-success"
+                                    @click="toggleShare(guest.id)"
+                                    title="Opciones de compartir"
+                                >
+                                    Compartir
+                                </button>
+
+                                <div
+                                    v-if="openShareId === guest.id"
+                                    class="share-popover p-2 shadow-sm bg-white rounded mt-1"
+                                >
+                                    <button
+                                        class="btn btn-sm btn-link d-block text-start"
+                                        @click="shareInvitation(guest)"
                                     >
-                                        <option value="pendiente">Pendiente</option>
-                                        <option value="confirmado">Confirmado</option>
-                                        <option value="cancelado">Cancelado</option>
-                                    </select>
-                                </td>
+                                        Copiar WhatsApp
+                                    </button>
 
-                                <td>
-                                    <div style="position: relative;">
-                                        <button
-                                            class="btn btn-sm btn-outline-success"
-                                            @click="toggleShare(guest.id)"
-                                            title="Opciones de compartir"
-                                        >
-                                            Compartir
-                                        </button>
+                                    <button
+                                        class="btn btn-sm btn-link d-block text-start"
+                                        @click="openWhatsApp(guest)"
+                                    >
+                                        Abrir WhatsApp
+                                    </button>
+                                </div>
 
-                                        <div v-if="openShareId === guest.id" class="share-popover p-2 shadow-sm bg-white rounded mt-1">
-                                            <button class="btn btn-sm btn-link d-block text-start" @click="shareInvitation(guest)">Copiar WhatsApp</button>
-                                            <button class="btn btn-sm btn-link d-block text-start" @click="openWhatsApp(guest)">Abrir WhatsApp</button>
-                                        </div>
-                                    </div>
-                                </td>
+                            </div>
+                        </td>
 
-                                <td>
-                                    <div class="d-flex flex-wrap align-items-center">
-                                        <button
-                                            class="btn btn-sm btn-outline-primary me-2"
-                                            @click="editGuest(guest)"
-                                        >
-                                            Editar
-                                        </button>
+                        <td>
+                            <div class="d-flex flex-wrap align-items-center">
 
-                                        <button
-                                            class="btn btn-sm btn-outline-danger"
-                                            @click="deleteGuest(guest)"
-                                        >
-                                            Eliminar
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
+                                <button
+                                    class="btn btn-sm btn-outline-primary me-2"
+                                    @click="editGuest(guest)"
+                                >
+                                    Editar
+                                </button>
 
-                    </table>
+                                <button
+                                    class="btn btn-sm btn-outline-danger"
+                                    @click="deleteGuest(guest)"
+                                >
+                                    Eliminar
+                                </button>
 
-                    <div class="d-flex justify-content-center mt-4">
+                            </div>
+                        </td>
 
-                        <button
-                            class="btn btn-outline-primary me-2"
-                            :disabled="currentPage <= 1"
-                            @click="changePage(currentPage - 1)"
-                        >
-                            Anterior
-                        </button>
+                    </tr>
+                </tbody>
 
-                        <span class="align-self-center">
-                            Página {{ currentPage }} de {{ lastPage }}
-                        </span>
+            </table>
+        </div>
 
-                        <button
-                            class="btn btn-outline-primary ms-2"
-                            :disabled="currentPage >= lastPage"
-                            @click="changePage(currentPage + 1)"
-                        >
-                            Siguiente
-                        </button>
 
-                    </div>
+        <!-- PAGINACIÓN TOTALMENTE FUERA DEL SCROLL -->
+        <div class="pagination-wrap">
+
+            <button
+                class="btn btn-outline-primary page-btn"
+                :disabled="currentPage <= 1"
+                @click="changePage(currentPage - 1)"
+            >
+                Anterior
+            </button>
+
+            <span class="page-indicator">
+                Página {{ currentPage }} de {{ lastPage }}
+            </span>
+
+            <button
+                class="btn btn-outline-primary page-btn"
+                :disabled="currentPage >= lastPage"
+                @click="changePage(currentPage + 1)"
+            >
+                Siguiente
+            </button>
+
+        </div>
+
+    </div>
 
 </template>
+
 
 <script setup>
 
@@ -123,26 +148,54 @@ const props = defineProps({
 
 const { guests, currentPage, lastPage } = toRefs(props)
 
-const emit = defineEmits(['edit-guest', 'delete-guest', 'update-confirmacion', 'change-page'])
+const emit = defineEmits([
+    'edit-guest',
+    'delete-guest',
+    'update-confirmacion',
+    'change-page'
+])
+
 
 const statusMap = {
-    pendiente: { label: 'Pendiente', className: 'border-warning text-warning' },
-    confirmado: { label: 'Confirmado', className: 'border-success text-success' },
-    cancelado: { label: 'Cancelado', className: 'border-danger text-danger' },
+    pendiente: {
+        label: 'Pendiente',
+        className: 'border-warning text-warning'
+    },
+
+    confirmado: {
+        label: 'Confirmado',
+        className: 'border-success text-success'
+    },
+
+    cancelado: {
+        label: 'Cancelado',
+        className: 'border-danger text-danger'
+    },
 }
 
-const normalizeStatus = (status) => statusMap[status] ? status : 'pendiente'
 
-const statusLabel = (status) => statusMap[normalizeStatus(status)]?.label || 'Pendiente'
-const statusSelectClass = (status) => statusMap[normalizeStatus(status)]?.className || 'border-warning text-warning'
+const normalizeStatus = (status) =>
+    statusMap[status] ? status : 'pendiente'
+
+
+const statusLabel = (status) =>
+    statusMap[normalizeStatus(status)]?.label || 'Pendiente'
+
+
+const statusSelectClass = (status) =>
+    statusMap[normalizeStatus(status)]?.className ||
+    'border-warning text-warning'
+
 
 const editGuest = (guest) => {
     emit('edit-guest', guest)
 }
 
+
 const deleteGuest = (guest) => {
     emit('delete-guest', guest)
 }
+
 
 const updateConfirmation = (guest, value) => {
     emit('update-confirmacion', {
@@ -151,38 +204,58 @@ const updateConfirmation = (guest, value) => {
     })
 }
 
+
 const changePage = (page) => {
     emit('change-page', page)
 }
 
+
 const openShareId = ref(null)
 
+
 const toggleShare = (id) => {
-    openShareId.value = openShareId.value === id ? null : id
+    openShareId.value =
+        openShareId.value === id ? null : id
 }
 
+
 const shareInvitation = async (guest) => {
+
     if (!guest) {
         return
     }
 
     const guestName = guest.first_name || 'invitado'
 
-    // Construir URL de la página de confirmación usando el token
     const baseUrl = window.location.origin
-    const token = guest.confirmation_token || guest.confirmationToken || ''
-    let rsvpUrl = token ? `${baseUrl}/rsvp/${token}` : baseUrl
+
+    const token =
+        guest.confirmation_token ||
+        guest.confirmationToken ||
+        ''
+
+    let rsvpUrl = token
+        ? `${baseUrl}/rsvp/${token}`
+        : baseUrl
+
 
     const ensureAbsolute = (u) => {
+
         if (!u) return u
-        if (/^https?:\/\//i.test(u)) return u
+
+        if (/^https?:\/\//i.test(u)) {
+            return u
+        }
+
         return `${baseUrl}${u.startsWith('/') ? '' : '/'}${u}`
     }
 
+
     rsvpUrl = ensureAbsolute(rsvpUrl)
 
-    // Intentar crear short link en el backend
+
     try {
+
         const resp = await api.post('/short-link', {
             guest_id: guest.id,
             confirmation_token: token,
@@ -191,12 +264,14 @@ const shareInvitation = async (guest) => {
         if (resp?.data?.short_url) {
             rsvpUrl = resp.data.short_url
         }
+
     } catch (e) {
-        // no crítico: usar URL completa si falla
+        // Usar URL completa si falla
     }
 
-    // Usar texto plano (sin markdown) para evitar problemas de linkificación
-    const message = `Hola ${guestName}!\n\n` +
+
+    const message =
+        `Hola ${guestName}!\n\n` +
         `Te invitamos a confirmar tu asistencia a nuestra celebración.\n\n` +
         `Puedes ver y responder tu invitación aquí:\n${rsvpUrl}\n\n` +
         `Confirmación de asistencia:\n` +
@@ -204,39 +279,82 @@ const shareInvitation = async (guest) => {
         `- Si no podrás acompañarnos, también puedes responder\n\n` +
         `Gracias por acompañarnos y por compartir este momento con nosotros.`
 
-    console.debug('Invitation message:', message)
 
     try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
+
+        if (
+            navigator.clipboard &&
+            navigator.clipboard.writeText
+        ) {
+
             await navigator.clipboard.writeText(message)
-            alert('Mensaje copiado al portapapeles. Ahora puedes pegarlo en WhatsApp.');
+
+            alert(
+                'Mensaje copiado al portapapeles. Ahora puedes pegarlo en WhatsApp.'
+            )
+
             openShareId.value = null
+
             return
         }
 
-        const textArea = document.createElement('textarea')
+
+        const textArea =
+            document.createElement('textarea')
+
         textArea.value = message
+
         textArea.style.position = 'fixed'
         textArea.style.opacity = '0'
+
         document.body.appendChild(textArea)
+
         textArea.select()
+
         document.execCommand('copy')
+
         document.body.removeChild(textArea)
+
         openShareId.value = null
+
     } catch (error) {
-        console.error('No se pudo copiar el texto para WhatsApp:', error)
+
+        console.error(
+            'No se pudo copiar el texto para WhatsApp:',
+            error
+        )
+
     }
 }
 
+
 const openWhatsApp = async (guest) => {
+
     if (!guest) return
 
-    const guestName = guest.first_name || 'invitado'
-    const baseUrl = window.location.origin
-    const token = guest.confirmation_token || guest.confirmationToken || ''
-    let rsvpUrl = token ? `${baseUrl}/rsvp/${token}` : baseUrl
+
+    const guestName =
+        guest.first_name || 'invitado'
+
+
+    const baseUrl =
+        window.location.origin
+
+
+    const token =
+        guest.confirmation_token ||
+        guest.confirmationToken ||
+        ''
+
+
+    let rsvpUrl =
+        token
+            ? `${baseUrl}/rsvp/${token}`
+            : baseUrl
+
 
     try {
+
         const resp = await api.post('/short-link', {
             guest_id: guest.id,
             confirmation_token: token,
@@ -245,18 +363,425 @@ const openWhatsApp = async (guest) => {
         if (resp?.data?.short_url) {
             rsvpUrl = resp.data.short_url
         }
+
     } catch (e) {
-        // ignore and use full URL
+        // Usar URL completa si falla
     }
 
-    const plainMessage = `¡Hola ${guestName}!\n\n` +
+
+    const plainMessage =
+        `¡Hola ${guestName}!\n\n` +
         `Te invitamos a confirmar tu asistencia a nuestra celebración.\n\n` +
         `Abre tu invitación aquí:\n${rsvpUrl}\n\n` +
         `¡Gracias por acompañarnos!`
 
-    const waLink = `https://wa.me/?text=${encodeURIComponent(plainMessage)}`
+
+    const waLink =
+        `https://wa.me/?text=${encodeURIComponent(plainMessage)}`
+
+
     window.open(waLink, '_blank')
+
     openShareId.value = null
 }
 
 </script>
+
+
+<style scoped>
+
+.guest-table-container {
+    width: 100%;
+    min-width: 0;
+
+    /*
+     * IMPORTANTE:
+     * No poner overflow aquí.
+     *
+     * La paginación queda fuera de cualquier
+     * contenedor con overflow.
+     */
+}
+
+
+/*
+ * =========================================================
+ * ÁREA SCROLLEABLE
+ * =========================================================
+ */
+
+.table-scroll-inner {
+
+    width: 100%;
+
+    /*
+     * El scroll pertenece EXCLUSIVAMENTE a esta zona.
+     */
+    overflow-x: auto;
+    overflow-y: auto;
+
+    /*
+     * Altura máxima de la tabla.
+     */
+    max-height: calc(100vh - 280px);
+
+    /*
+     * Permite que el contenedor se desplace
+     * correctamente en dispositivos táctiles.
+     */
+    -webkit-overflow-scrolling: touch;
+
+    /*
+     * Evita que un ancho grande de la tabla
+     * provoque overflow en toda la página.
+     */
+    min-width: 0;
+
+    /*
+     * Separación visual.
+     */
+    padding-right: 2px;
+}
+
+
+/*
+ * =========================================================
+ * TABLA
+ * =========================================================
+ */
+
+.guest-table {
+
+    border-collapse: separate;
+    border-spacing: 0;
+
+    font-size: 0.85rem;
+
+    /*
+     * La tabla puede ser más ancha que el móvil.
+     * El scroll horizontal pertenece al padre.
+     */
+    width: max-content;
+    min-width: 100%;
+}
+
+
+.guest-table th,
+.guest-table td {
+
+    padding: 0.55rem 0.4rem;
+
+    vertical-align: middle;
+}
+
+
+.guest-table thead th {
+
+    color: #49615a;
+
+    font-size: 0.68rem;
+
+    letter-spacing: 0.05em;
+
+    text-transform: uppercase;
+
+    font-weight: 700;
+
+    background: rgba(151, 178, 160, 0.08);
+
+    /*
+     * Mantiene el encabezado visible
+     * mientras se hace scroll vertical.
+     */
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+
+/*
+ * =========================================================
+ * SELECT
+ * =========================================================
+ */
+
+.form-select {
+
+    min-width: 110px;
+
+    border-radius: 10px;
+
+    border-color:
+        rgba(128, 153, 137, 0.25);
+
+    font-size: 0.72rem;
+
+    padding: 0.28rem 0.5rem;
+}
+
+
+/*
+ * =========================================================
+ * SHARE POPOVER
+ * =========================================================
+ */
+
+.share-container {
+    position: relative;
+}
+
+
+.share-popover {
+
+    position: absolute;
+
+    top: 100%;
+    left: 0;
+
+    z-index: 20;
+
+    min-width: 180px;
+
+    white-space: nowrap;
+}
+
+
+/*
+ * =========================================================
+ * PAGINACIÓN
+ *
+ * IMPORTANTE:
+ * Está fuera de .table-scroll-inner.
+ * =========================================================
+ */
+
+.pagination-wrap {
+
+    width: 100%;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 10px;
+
+    /*
+     * Separación respecto a la tabla.
+     */
+    margin-top: 16px;
+
+    /*
+     * La paginación NO tiene overflow.
+     */
+    overflow: visible;
+
+    /*
+     * Evita que quede pegada al contenido
+     * cuando la tabla termina.
+     */
+    padding: 4px 0 12px;
+}
+
+
+.page-btn {
+
+    border-radius: 10px;
+
+    border-color:
+        rgba(120, 150, 127, 0.4);
+
+    color: #39584a;
+
+    white-space: nowrap;
+
+    flex: 0 0 auto;
+}
+
+
+.page-btn:hover:not(:disabled) {
+
+    background:
+        rgba(120, 150, 127, 0.12);
+
+    border-color:
+        rgba(120, 150, 127, 0.5);
+}
+
+
+.page-indicator {
+
+    color: #536d64;
+
+    font-size: 0.85rem;
+
+    white-space: nowrap;
+
+    flex: 0 0 auto;
+}
+
+
+/*
+ * =========================================================
+ * MÓVILES
+ * =========================================================
+ */
+
+@media (max-width: 767.98px) {
+
+    /*
+     * En móvil dejamos espacio suficiente para
+     * la paginación y evitamos que el scroll de la
+     * tabla ocupe prácticamente todo el viewport.
+     */
+    .table-scroll-inner {
+
+        max-height: calc(100dvh - 300px);
+
+        /*
+         * Fallback para navegadores antiguos.
+         */
+        max-height: calc(100vh - 300px);
+
+        overscroll-behavior: contain;
+
+        /*
+         * Scroll táctil nativo.
+         */
+        -webkit-overflow-scrolling: touch;
+    }
+
+
+    .guest-table {
+
+        font-size: 0.72rem;
+
+        /*
+         * Ancho mínimo para conservar
+         * la estructura de las columnas.
+         */
+        min-width: 660px;
+
+        width: 660px;
+    }
+
+
+    .guest-table th,
+    .guest-table td {
+
+        padding:
+            0.45rem
+            0.28rem;
+    }
+
+
+    .guest-table thead th {
+
+        font-size: 0.62rem;
+    }
+
+
+    .form-select {
+
+        min-width: 90px;
+
+        padding:
+            0.22rem
+            0.4rem;
+
+        font-size: 0.7rem;
+    }
+
+
+    /*
+     * PAGINACIÓN
+     *
+     * Nunca entra dentro del scroll de la tabla.
+     */
+
+    .pagination-wrap {
+
+        display: flex;
+
+        flex-wrap: nowrap;
+
+        align-items: center;
+
+        justify-content: center;
+
+        gap: 6px;
+
+        width: 100%;
+
+        min-width: 0;
+
+        margin-top: 14px;
+
+        padding:
+            4px
+            0
+            16px;
+
+        /*
+         * Permite que los botones sigan siendo
+         * accesibles aunque el viewport sea pequeño.
+         */
+        overflow: visible;
+    }
+
+
+    .page-btn {
+
+        flex: 0 0 auto;
+
+        padding:
+            0.4rem
+            0.65rem;
+
+        font-size: 0.72rem;
+    }
+
+
+    .page-indicator {
+
+        flex: 0 0 auto;
+
+        text-align: center;
+
+        font-size: 0.72rem;
+    }
+}
+
+
+/*
+ * =========================================================
+ * MÓVILES MUY PEQUEÑOS
+ * =========================================================
+ */
+
+@media (max-width: 380px) {
+
+    .pagination-wrap {
+
+        gap: 4px;
+    }
+
+
+    .page-btn {
+
+        padding:
+            0.35rem
+            0.5rem;
+
+        font-size: 0.68rem;
+    }
+
+
+    .page-indicator {
+
+        font-size: 0.68rem;
+    }
+}
+
+</style>

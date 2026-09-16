@@ -1,41 +1,25 @@
 <template>
     <AppLayout>
-        <div class="card shadow-sm">
+        <div class="card section-card shadow-sm">
 
-            <div class="card-body">
+            <div class="card-body section-body">
 
-                <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="header-row mb-1">
 
-                    <div>
-                        <h1 class="h3 mb-1">
-                            Invitados
-                        </h1>
-
-                        <p class="text-muted mb-0">
-                            Gestión de invitados de la boda.
-                        </p>
+                    <div class="title-block">
+                        <p class="section-kicker">Panel Lista de Invitados</p>
                     </div>
-
-                    <button 
-                    class="btn btn-primary"
-                    @click="openCreateModal"
-                    >
-                        Nuevo invitado
-                    </button>
-
-                    
-
 
                 </div>
 
-                <div class="col-md-12">
+                <div class="search-row mb-1">
                     <input
-                    v-model="search"
-                    class="form-control"
-                     type="text"
-                    placeholder="Buscar invitado..."
-                    @input="debounceLoadGuests"
-                    >
+                            v-model="search"
+                            class="form-control search-input"
+                            type="text"
+                            placeholder="Buscar invitado..."
+                            @input="debounceLoadGuests"
+                        >
                 </div>
 
                 
@@ -43,17 +27,16 @@
                     Cargando invitados...
                 </div>
 
-                <div v-else class="table-responsive">
-                    
+                <div v-else>
                     <GuestTable
-                            :guests="guests"
-                            :current-page="currentPage"
-                            :last-page="lastPage"
-                            @edit-guest="editGuest"
-                            @delete-guest="deleteGuest"
-                            @update-confirmacion="updateConfirmation"
-                            @change-page="changePage"
-                        />
+                        :guests="guests"
+                        :current-page="currentPage"
+                        :last-page="lastPage"
+                        @edit-guest="editGuest"
+                        @delete-guest="deleteGuest"
+                        @update-confirmacion="updateConfirmation"
+                        @change-page="changePage"
+                    />
                 </div>
 
             </div>
@@ -88,11 +71,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import AppLayout from './AppLayout.vue';
 import api from '../Services/axios.js';
 import GuestTable from './guests/GuestTable.vue';
 import GuestModal from './guests/GuestModal.vue';
+
+const route = useRoute();
 
 const guests = ref([]);
 const currentPage = ref(1);
@@ -279,10 +265,127 @@ const updateConfirmation = async (guest) => {
     }
 };
 
+const openCreateFromQuery = () => {
+    if (route.query.create === '1') {
+        openCreateModal();
+    }
+};
+
+watch(
+    () => route.query.create,
+    (value) => {
+        if (value === '1') {
+            openCreateModal();
+        }
+    }
+);
+
 onMounted(() => {
     loadGuest();
+    openCreateFromQuery();
 });
 
 
 
 </script>
+
+<style scoped>
+.section-card {
+    border: 1px solid rgba(123, 156, 137, 0.18);
+    border-radius: 20px;
+    box-shadow: 0 12px 26px rgba(91, 120, 101, 0.08);
+    background: rgba(255, 255, 255, 0.72);
+    overflow: hidden;
+}
+
+.section-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.header-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.title-block {
+    min-width: 0;
+}
+
+.section-kicker {
+    margin: 0 0 4px;
+    color: #6a8675;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.page-title {
+    margin: 0;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: clamp(1.8rem, 2.2vw, 2.6rem);
+    line-height: 1.1;
+    color: #2f473f;
+}
+
+.subtitle {
+    margin-top: 6px;
+    color: #627b6e;
+    font-size: 0.95rem;
+}
+
+.search-row {
+    margin-top: 0.1rem;
+    margin-bottom: 0.35rem;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(6px);
+}
+
+.search-wrap {
+    padding: 0;
+}
+
+.search-input {
+    border-radius: 10px;
+    border: 1px solid rgba(130, 156, 136, 0.28);
+    background: rgba(255, 255, 255, 0.76);
+    padding: 0.6rem 0.8rem;
+    font-size: 0.9rem;
+    color: #2c3d35;
+    box-shadow: inset 0 1px 2px rgba(93, 115, 100, 0.04);
+    min-height: 40px;
+}
+
+.search-input:focus {
+    border-color: rgba(122, 155, 128, 0.8);
+    box-shadow: 0 0 0 0.2rem rgba(122, 155, 128, 0.16);
+}
+
+@media (max-width: 991.98px) {
+    .section-body {
+        padding: 16px 14px;
+    }
+
+    .header-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .page-title {
+        font-size: 1.8rem;
+    }
+
+    .subtitle {
+        font-size: 0.82rem;
+    }
+
+}</style>

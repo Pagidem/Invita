@@ -43,6 +43,17 @@
                             >
                                 Invitados
                             </RouterLink>
+
+                            <button
+                                class="sidebar-action"
+                                type="button"
+                                @click="goToCreateGuest"
+                                aria-label="Nuevo invitado"
+                                title="Nuevo invitado"
+                            >
+                                <span class="action-text">Nuevo invitado</span>
+                                <span class="action-plus" aria-hidden="true">+</span>
+                            </button>
                         </nav>
                     </div>
                 </aside>
@@ -64,6 +75,10 @@ import auth from '../Services/auth.js';
 
 const router = useRouter();
 const user = ref(null);
+
+const goToCreateGuest = () => {
+    router.push({ path: '/guests', query: { create: '1' } });
+};
 
 onMounted(async () => {
     try {
@@ -108,6 +123,9 @@ const logout = async () => {
 }
 
 .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
     background: rgba(135, 163, 145, 0.96);
     border-bottom: 1px solid rgba(255, 255, 255, 0.25);
     box-shadow: 0 6px 18px rgba(88, 113, 95, 0.12);
@@ -242,7 +260,8 @@ const logout = async () => {
     gap: 8px;
 }
 
-.sidebar-link {
+.sidebar-link,
+.sidebar-action {
     display: block;
     width: 100%;
     padding: 11px 12px;
@@ -261,6 +280,34 @@ const logout = async () => {
     background: linear-gradient(135deg, rgba(176, 201, 181, 0.22), rgba(214, 228, 217, 0.2));
     color: #2a443d;
     box-shadow: inset 0 0 0 1px rgba(130, 160, 138, 0.18);
+}
+
+.sidebar-action {
+    border: 1px solid rgba(122, 155, 128, 0.18);
+    background: linear-gradient(135deg, #a9c0ac 0%, #7f9d88 100%);
+    color: #fff;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 10px 18px rgba(115, 146, 125, 0.16);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.action-text {
+    display: inline;
+}
+
+.action-plus {
+    display: none;
+}
+
+.sidebar-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 20px rgba(115, 146, 125, 0.2);
+    color: #fff;
 }
 
 .content-panel {
@@ -332,26 +379,78 @@ const logout = async () => {
     }
 
     .sidebar-nav {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        gap: 6px;
         width: 100%;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
     }
 
-    .sidebar-link {
-        width: 100%;
+    .sidebar-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .sidebar-link,
+    .sidebar-action {
+        width: auto;
         min-width: 0;
+        flex: 1 1 0;
         text-align: center;
-        padding: 9px 8px;
-        font-size: 0.8rem;
+        padding: 8px 8px;
+        font-size: 0.72rem;
         border-radius: 10px;
         background: rgba(135, 163, 145, 0.08);
         border: 1px solid rgba(135, 163, 145, 0.14);
+        white-space: nowrap;
     }
 
     .sidebar-link.active {
         background: linear-gradient(135deg, rgba(135, 163, 145, 0.2), rgba(214, 228, 217, 0.28));
         border-color: rgba(135, 163, 145, 0.22);
+    }
+
+    .sidebar-action {
+        position: fixed;
+        right: 18px;
+        bottom: 20px;
+        z-index: 1200;
+        width: 60px;
+        min-width: 60px;
+        height: 60px;
+        padding: 0;
+        border-radius: 50%;
+        flex: 0 0 60px;
+        background: linear-gradient(135deg, #c7d9c8 0%, #7fa287 35%, #6c8e76 100%);
+        border: 1px solid rgba(255, 255, 255, 0.55);
+        color: #fff;
+        box-shadow: 0 14px 26px rgba(83, 118, 92, 0.32), 0 0 0 7px rgba(169, 195, 173, 0.18);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+        filter: saturate(1.08);
+    }
+
+    .sidebar-action:hover {
+        filter: brightness(1.05);
+    }
+
+    .sidebar-action:active {
+        transform: scale(0.96);
+    }
+
+    .action-text {
+        display: none;
+    }
+
+    .action-plus {
+        display: inline-block;
+        font-size: 2.7rem;
+        line-height: 1;
+        font-weight: 300;
+        transform: translateY(-1px);
+        letter-spacing: -0.06em;
+        text-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
     }
 
     .content-panel {
