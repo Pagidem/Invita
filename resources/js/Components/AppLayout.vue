@@ -65,6 +65,17 @@
                                 <span class="action-text">Exportar planilla</span>
                                 <span class="action-plus export-plus" aria-hidden="true">↓</span>
                             </button>
+
+                            <button
+                                class="sidebar-action import-action"
+                                type="button"
+                                @click="triggerImportFile"
+                                aria-label="Importar planilla"
+                                title="Importar planilla"
+                            >
+                                <span class="action-text">Importar planilla</span>
+                                <span class="action-plus import-plus" aria-hidden="true">↑</span>
+                            </button>
                         </nav>
                     </div>
                 </aside>
@@ -96,6 +107,13 @@
                 >
                     Exportar planilla
                 </button>
+                <button
+                    type="button"
+                    class="mobile-quick-action"
+                    @click="triggerImportFile"
+                >
+                    Importar registros
+                </button>
             </div>
 
             <button
@@ -109,6 +127,14 @@
                 <span aria-hidden="true">+</span>
             </button>
         </main>
+
+        <input
+            ref="importInput"
+            type="file"
+            class="hidden-file-input"
+            accept=".csv,.xlsx,.xls"
+            @change="handleImportFile"
+        />
     </div>
 </template>
 
@@ -121,6 +147,7 @@ import api from '../Services/axios.js';
 const router = useRouter();
 const user = ref(null);
 const showQuickActions = ref(false);
+const importInput = ref(null);
 
 const goToCreateGuest = async () => {
     showQuickActions.value = false;
@@ -154,6 +181,53 @@ const exportGuestTemplate = async () => {
     } catch (error) {
         console.error('Error al exportar la planilla:', error);
         alert('No se pudo exportar la planilla.');
+    }
+};
+
+const triggerImportFile = () => {
+    showQuickActions.value = false;
+    importInput.value?.click();
+};
+
+const handleImportFile = async (event) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+        return;
+    }
+
+    const validNames = [
+        'plantilla_invitados.csv',
+        'plantilla_invitados.xls',
+        'plantilla_invitados.xlsx',
+    ];
+
+    const fileName = file.name.trim().toLowerCase();
+
+    if (!validNames.includes(fileName)) {
+        alert('El nombre del archivo es incorrecto. Debe llamarse exactamente: plantilla_invitados.csv, plantilla_invitados.xls o plantilla_invitados.xlsx');
+        event.target.value = '';
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        const response = await api.post('/guests/import', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+
+        alert(response.data?.message || 'Invitados importados correctamente.');
+    } catch (error) {
+        console.error('Error al importar la planilla:', error);
+
+        const message = error?.response?.data?.message || 'No se pudo importar la planilla.';
+        alert(message);
+    } finally {
+        event.target.value = '';
     }
 };
 
@@ -381,6 +455,10 @@ const logout = async () => {
     background: linear-gradient(135deg, #d0d9ce 0%, #8ca28f 100%);
 }
 
+.import-action {
+    background: linear-gradient(135deg, #d6d4ae 0%, #9b9872 100%);
+}
+
 .action-text {
     display: inline;
 }
@@ -402,6 +480,10 @@ const logout = async () => {
     box-shadow: 0 10px 24px rgba(95, 120, 104, 0.08);
     padding: 20px;
     min-height: 440px;
+}
+
+.hidden-file-input {
+    display: none;
 }
 
 @media (max-width: 767.98px) {

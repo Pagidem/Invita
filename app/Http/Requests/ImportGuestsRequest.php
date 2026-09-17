@@ -26,4 +26,27 @@ class ImportGuestsRequest extends FormRequest
             'file' => ['required', 'file', 'mimes:csv,xlsx,xls'],
         ];
     }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $file = $this->file('file');
+
+            if (! $file) {
+                return;
+            }
+
+            $allowedNames = [
+                'plantilla_invitados.csv',
+                'plantilla_invitados.xls',
+                'plantilla_invitados.xlsx',
+            ];
+
+            $originalName = strtolower(trim((string) $file->getClientOriginalName()));
+
+            if (! in_array($originalName, $allowedNames, true)) {
+                $validator->errors()->add('file', 'El nombre del archivo es incorrecto. Debe llamarse exactamente: plantilla_invitados.csv, plantilla_invitados.xls o plantilla_invitados.xlsx');
+            }
+        });
+    }
 }
