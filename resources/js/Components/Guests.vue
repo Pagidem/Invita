@@ -10,16 +10,6 @@
                         <p class="section-kicker">Panel Lista de Invitados</p>
                     </div>
 
-                    <button
-                        type="button"
-                        class="mobile-create-btn"
-                        @click="openCreateModal"
-                        aria-label="Nuevo invitado"
-                        title="Nuevo invitado"
-                    >
-                        <span aria-hidden="true">+</span>
-                    </button>
-
                 </div>
 
                 <div class="search-row mb-1">
@@ -316,10 +306,6 @@ onBeforeUnmount(() => {
     min-width: 0;
 }
 
-.mobile-create-btn {
-    display: none;
-}
-
 .section-kicker {
     margin: 0 0 4px;
     color: #6a8675;
@@ -379,29 +365,9 @@ onBeforeUnmount(() => {
     }
 
     .header-row {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
+        flex-direction: column;
+        align-items: flex-start;
         gap: 10px;
-    }
-
-    .mobile-create-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 32px;
-        height: 32px;
-        border: 0;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #c7d9c8 0%, #7fa287 35%, #6c8e76 100%);
-        color: #fff;
-        box-shadow: 0 8px 18px rgba(83, 118, 92, 0.22);
-        font-size: 1.6rem;
-        line-height: 1;
-        font-weight: 300;
-        padding: 0;
-        flex-shrink: 0;
-        cursor: pointer;
     }
 
     .page-title {

@@ -54,6 +54,17 @@
                                 <span class="action-text">Nuevo invitado</span>
                                 <span class="action-plus" aria-hidden="true">+</span>
                             </button>
+
+                            <button
+                                class="sidebar-action export-action"
+                                type="button"
+                                @click="exportGuestTemplate"
+                                aria-label="Exportar planilla"
+                                title="Exportar planilla"
+                            >
+                                <span class="action-text">Exportar planilla</span>
+                                <span class="action-plus export-plus" aria-hidden="true">↓</span>
+                            </button>
                         </nav>
                     </div>
                 </aside>
@@ -64,6 +75,39 @@
                     </div>
                 </section>
             </div>
+
+            <div
+                v-if="showQuickActions"
+                class="mobile-quick-actions"
+                :class="{ 'is-open': showQuickActions }"
+                aria-live="polite"
+            >
+                <button
+                    type="button"
+                    class="mobile-quick-action"
+                    @click="goToCreateGuest"
+                >
+                    Nuevo Invitado
+                </button>
+                <button
+                    type="button"
+                    class="mobile-quick-action"
+                    @click="exportGuestTemplate"
+                >
+                    Exportar planilla
+                </button>
+            </div>
+
+            <button
+                type="button"
+                class="mobile-fab"
+                :class="{ 'is-open': showQuickActions }"
+                @click="toggleQuickActions"
+                aria-label="Acciones rápidas"
+                title="Acciones rápidas"
+            >
+                <span aria-hidden="true">+</span>
+            </button>
         </main>
     </div>
 </template>
@@ -72,16 +116,49 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import auth from '../Services/auth.js';
+import api from '../Services/axios.js';
 
 const router = useRouter();
 const user = ref(null);
+const showQuickActions = ref(false);
 
 const goToCreateGuest = async () => {
+    showQuickActions.value = false;
+
     if (router.currentRoute.value.path !== '/guests') {
         await router.push({ path: '/guests' });
     }
 
     window.dispatchEvent(new CustomEvent('open-create-guest'));
+};
+
+const exportGuestTemplate = async () => {
+    showQuickActions.value = false;
+
+    try {
+        const response = await api.get('/guests/export-template', {
+            responseType: 'blob',
+        });
+
+        const contentType = response.headers['content-type'] || 'text/csv;charset=utf-8';
+        const blob = new Blob([response.data], { type: contentType });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+
+        link.href = url;
+        link.download = 'plantilla_invitados.csv';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('Error al exportar la planilla:', error);
+        alert('No se pudo exportar la planilla.');
+    }
+};
+
+const toggleQuickActions = () => {
+    showQuickActions.value = !showQuickActions.value;
 };
 
 onMounted(async () => {
@@ -300,6 +377,10 @@ const logout = async () => {
     gap: 8px;
 }
 
+.export-action {
+    background: linear-gradient(135deg, #d0d9ce 0%, #8ca28f 100%);
+}
+
 .action-text {
     display: inline;
 }
@@ -418,6 +499,82 @@ const logout = async () => {
 
     .sidebar-action {
         display: none;
+    }
+
+    .mobile-fab {
+        position: fixed;
+        right: 18px;
+        bottom: 20px;
+        z-index: 1200;
+        width: 60px;
+        min-width: 60px;
+        height: 60px;
+        padding: 0;
+        border: 1px solid rgba(255, 255, 255, 0.55);
+        border-radius: 50%;
+        background: linear-gradient(135deg, #c7d9c8 0%, #7fa287 35%, #6c8e76 100%);
+        color: #fff;
+        box-shadow: 0 14px 26px rgba(83, 118, 92, 0.32), 0 0 0 7px rgba(169, 195, 173, 0.18);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+        filter: saturate(1.08);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .mobile-fab:hover {
+        filter: brightness(1.05);
+    }
+
+    .mobile-fab:active {
+        transform: scale(0.96);
+    }
+
+    .mobile-fab span {
+        font-size: 2.7rem;
+        line-height: 1;
+        font-weight: 300;
+        transform: translateY(-1px);
+        letter-spacing: -0.06em;
+        text-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    .mobile-fab.is-open {
+        transform: rotate(45deg);
+    }
+
+    .mobile-quick-actions {
+        position: fixed;
+        right: 18px;
+        bottom: 94px;
+        z-index: 1199;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-end;
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(8px);
+        transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .mobile-quick-actions.is-open {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateY(0);
+    }
+
+    .mobile-quick-action {
+        border: 1px solid rgba(122, 155, 128, 0.2);
+        background: rgba(255, 255, 255, 0.9);
+        color: #2f473f;
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        box-shadow: 0 12px 20px rgba(83, 118, 92, 0.12);
+        white-space: nowrap;
     }
 
     .content-panel {

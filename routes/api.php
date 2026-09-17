@@ -26,9 +26,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout',[AuthController::class, 'logout']);
 
 
-    Route::apiResource('guests', GuestController::class);
     Route::get('/guests/export-template', [GuestController::class, 'exportTemplate']);
     Route::post('/guests/import', [GuestController::class, 'import']);
+    Route::apiResource('guests', GuestController::class);
 
 });
 
