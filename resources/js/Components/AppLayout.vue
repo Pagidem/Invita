@@ -417,44 +417,7 @@ const logout = async () => {
     }
 
     .sidebar-action {
-        position: fixed;
-        right: 18px;
-        bottom: 20px;
-        z-index: 1200;
-        width: 60px;
-        min-width: 60px;
-        height: 60px;
-        padding: 0;
-        border-radius: 50%;
-        flex: 0 0 60px;
-        background: linear-gradient(135deg, #c7d9c8 0%, #7fa287 35%, #6c8e76 100%);
-        border: 1px solid rgba(255, 255, 255, 0.55);
-        color: #fff;
-        box-shadow: 0 14px 26px rgba(83, 118, 92, 0.32), 0 0 0 7px rgba(169, 195, 173, 0.18);
-        transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
-        filter: saturate(1.08);
-    }
-
-    .sidebar-action:hover {
-        filter: brightness(1.05);
-    }
-
-    .sidebar-action:active {
-        transform: scale(0.96);
-    }
-
-    .action-text {
         display: none;
-    }
-
-    .action-plus {
-        display: inline-block;
-        font-size: 2.7rem;
-        line-height: 1;
-        font-weight: 300;
-        transform: translateY(-1px);
-        letter-spacing: -0.06em;
-        text-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
     }
 
     .content-panel {
