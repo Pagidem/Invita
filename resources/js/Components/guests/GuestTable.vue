@@ -375,9 +375,15 @@ const openWhatsApp = async (guest) => {
         `Abre tu invitación aquí:\n${rsvpUrl}\n\n` +
         `¡Gracias por acompañarnos!`
 
+    const guestPhone =
+        guest.phone || ''
 
-    const waLink =
-        `https://wa.me/?text=${encodeURIComponent(plainMessage)}`
+    const cleanedPhone =
+        guestPhone.toString().replace(/\D/g, '')
+
+    const waLink = cleanedPhone
+        ? `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(plainMessage)}`
+        : `https://wa.me/?text=${encodeURIComponent(plainMessage)}`
 
 
     window.open(waLink, '_blank')
