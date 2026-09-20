@@ -23,7 +23,7 @@ class ImportGuestsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'file' => ['required', 'file', 'mimes:csv,xlsx,xls'],
+            'file' => ['required', 'file'],
         ];
     }
 
@@ -43,6 +43,25 @@ class ImportGuestsRequest extends FormRequest
             ];
 
             $originalName = strtolower(trim((string) $file->getClientOriginalName()));
+            $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+            $mime = strtolower((string) $file->getMimeType());
+            $allowedExtensions = ['csv', 'xls', 'xlsx'];
+            $allowedMimeTypes = [
+                'text/csv',
+                'application/csv',
+                'application/vnd.ms-excel',
+                'application/octet-stream',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'application/vnd.ms-excel.sheet.macroenabled.12',
+            ];
+
+            $isAllowedType = in_array($extension, $allowedExtensions, true)
+                || in_array($mime, $allowedMimeTypes, true);
+
+            if (! $isAllowedType) {
+                $validator->errors()->add('file', 'El archivo debe ser de tipo: csv, xlsx o xls.');
+                return;
+            }
 
             if (! in_array($originalName, $allowedNames, true)) {
                 $validator->errors()->add('file', 'El nombre del archivo es incorrecto. Debe llamarse exactamente: plantilla_invitados.csv, plantilla_invitados.xls o plantilla_invitados.xlsx');

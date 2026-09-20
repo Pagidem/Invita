@@ -102,13 +102,17 @@ class GuestRsvpController extends Controller
         ]);
 
         $freshGuest = $guest->fresh();
+        $confirmedAt = $freshGuest->confirmed_at;
+        $confirmedAtValue = $confirmedAt instanceof \DateTimeInterface
+            ? $confirmedAt->toDateTimeString()
+            : (is_string($confirmedAt) ? $confirmedAt : null);
 
         return response()->json([
             'message' => 'Confirmación registrada',
             'data' => [
                 'confirmacion' => $freshGuest->confirmacion,
                 'companions' => (int) $freshGuest->companions,
-                'confirmed_at' => $freshGuest->confirmed_at ? $freshGuest->confirmed_at->toDateTimeString() : null,
+                'confirmed_at' => $confirmedAtValue,
             ]
         ]);
     }

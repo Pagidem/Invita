@@ -11,6 +11,9 @@ use App\Models\Guest;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class GuestController extends Controller
 {
@@ -111,13 +114,23 @@ class GuestController extends Controller
             'notes',
         ];
 
+        $rows = [
+            $headers,
+            ['', '', '', '', '', 1, 'pendiente', ''],
+        ];
+
         $fileName = 'plantilla_invitados.csv';
 
-        return Response::streamDownload(function () use ($headers) {
+        return Response::streamDownload(function () use ($rows) {
             $handle = fopen('php://output', 'w');
 
-            fputcsv($handle, $headers);
-            fputcsv($handle, ['', '', '', '', '', 1, 'pendiente', '']);
+            if ($handle === false) {
+                return;
+            }
+
+            foreach ($rows as $row) {
+                fputcsv($handle, $row);
+            }
 
             fclose($handle);
         }, $fileName, [
@@ -137,44 +150,78 @@ class GuestController extends Controller
             ], 422);
         }
 
-        $handle = fopen($path, 'r');
+        $extension = strtolower($file->getClientOriginalExtension() ?: $file->getExtension());
 
-        if ($handle === false) {
-            return response()->json([
-                'message' => 'No se pudo abrir el archivo.',
-            ], 422);
+        if (in_array($extension, ['xlsx', 'xls'], true)) {
+            $spreadsheet = IOFactory::load($path);
+            $rows = $spreadsheet->getActiveSheet()->toArray();
+        } else {
+            $handle = fopen($path, 'r');
+
+            if ($handle === false) {
+                return response()->json([
+                    'message' => 'No se pudo abrir el archivo.',
+                ], 422);
+            }
+
+            $rows = [];
+            $firstLine = fgets($handle);
+
+            if ($firstLine !== false) {
+                $delimiter = stripos($firstLine, ';') !== false ? ';' : ',';
+                rewind($handle);
+
+                while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
+                    $rows[] = $row;
+                }
+            }
+
+            fclose($handle);
         }
 
-        $header = fgetcsv($handle);
-
-        if ($header === false) {
-            fclose($handle);
-
+        if ($rows === []) {
             return response()->json([
                 'message' => 'El archivo está vacío.',
             ], 422);
         }
 
+        $firstRow = $rows[0];
+        $header = array_map(function ($value) {
+            $value = preg_replace('/^\xEF\xBB\xBF/u', '', (string) $value);
+            $value = strtolower(trim((string) $value));
+
+            return str_replace([';', ','], '', $value);
+        }, $firstRow);
         $expectedColumns = ['ci', 'first_name', 'last_name', 'phone', 'email', 'invitations', 'confirmacion', 'notes'];
-        $normalizedHeader = array_map(static fn ($value) => strtolower(trim((string) $value)), $header);
 
-        if ($normalizedHeader !== $expectedColumns) {
-            fclose($handle);
-
+        if (count($header) < 7) {
             return response()->json([
                 'message' => 'La cabecera del archivo no coincide con el formato esperado.',
                 'expected' => $expectedColumns,
-                'received' => $normalizedHeader,
+                'received' => $header,
+            ], 422);
+        }
+
+        $header = array_pad(array_slice($header, 0, 8), 8, 'notes');
+
+        if ($header !== $expectedColumns) {
+            return response()->json([
+                'message' => 'La cabecera del archivo no coincide con el formato esperado.',
+                'expected' => $expectedColumns,
+                'received' => $header,
             ], 422);
         }
 
         $imported = 0;
         $updated = 0;
 
-        while (($row = fgetcsv($handle)) !== false) {
-            if (count($row) < 8) {
+        foreach (array_slice($rows, 1) as $row) {
+            if (empty($row) || count(array_filter($row, fn ($cell) => trim((string) $cell) !== '')) === 0) {
                 continue;
             }
+
+            $row = array_values($row);
+            $row = array_pad(array_slice($row, 0, 8), 8, '');
 
             $data = [
                 'ci' => trim((string) ($row[0] ?? '')),
@@ -210,8 +257,6 @@ class GuestController extends Controller
                 $updated++;
             }
         }
-
-        fclose($handle);
 
         return response()->json([
             'message' => 'Archivo importado correctamente.',

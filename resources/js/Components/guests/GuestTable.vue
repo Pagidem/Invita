@@ -46,36 +46,13 @@
                         </td>
 
                         <td>
-                            <div class="share-container">
-
-                                <button
-                                    class="btn btn-sm btn-outline-success"
-                                    @click="toggleShare(guest.id)"
-                                    title="Opciones de compartir"
-                                >
-                                    Compartir
-                                </button>
-
-                                <div
-                                    v-if="openShareId === guest.id"
-                                    class="share-popover p-2 shadow-sm bg-white rounded mt-1"
-                                >
-                                    <button
-                                        class="btn btn-sm btn-link d-block text-start"
-                                        @click="shareInvitation(guest)"
-                                    >
-                                        Copiar WhatsApp
-                                    </button>
-
-                                    <button
-                                        class="btn btn-sm btn-link d-block text-start"
-                                        @click="openWhatsApp(guest)"
-                                    >
-                                        Abrir WhatsApp
-                                    </button>
-                                </div>
-
-                            </div>
+                            <button
+                                class="btn btn-sm btn-outline-success"
+                                @click="openWhatsApp(guest)"
+                                title="Compartir por WhatsApp"
+                            >
+                                Compartir
+                            </button>
                         </td>
 
                         <td>
@@ -210,124 +187,6 @@ const changePage = (page) => {
 }
 
 
-const openShareId = ref(null)
-
-
-const toggleShare = (id) => {
-    openShareId.value =
-        openShareId.value === id ? null : id
-}
-
-
-const shareInvitation = async (guest) => {
-
-    if (!guest) {
-        return
-    }
-
-    const guestName = guest.first_name || 'invitado'
-
-    const baseUrl = window.location.origin
-
-    const token =
-        guest.confirmation_token ||
-        guest.confirmationToken ||
-        ''
-
-    let rsvpUrl = token
-        ? `${baseUrl}/rsvp/${token}`
-        : baseUrl
-
-
-    const ensureAbsolute = (u) => {
-
-        if (!u) return u
-
-        if (/^https?:\/\//i.test(u)) {
-            return u
-        }
-
-        return `${baseUrl}${u.startsWith('/') ? '' : '/'}${u}`
-    }
-
-
-    rsvpUrl = ensureAbsolute(rsvpUrl)
-
-
-    try {
-
-        const resp = await api.post('/short-link', {
-            guest_id: guest.id,
-            confirmation_token: token,
-        })
-
-        if (resp?.data?.short_url) {
-            rsvpUrl = resp.data.short_url
-        }
-
-    } catch (e) {
-        // Usar URL completa si falla
-    }
-
-
-    const message =
-        `Hola ${guestName}!\n\n` +
-        `Te invitamos a confirmar tu asistencia a nuestra celebración.\n\n` +
-        `Puedes ver y responder tu invitación aquí:\n${rsvpUrl}\n\n` +
-        `Confirmación de asistencia:\n` +
-        `- Si asistirás, confirma tu respuesta\n` +
-        `- Si no podrás acompañarnos, también puedes responder\n\n` +
-        `Gracias por acompañarnos y por compartir este momento con nosotros.`
-
-
-    try {
-
-        if (
-            navigator.clipboard &&
-            navigator.clipboard.writeText
-        ) {
-
-            await navigator.clipboard.writeText(message)
-
-            alert(
-                'Mensaje copiado al portapapeles. Ahora puedes pegarlo en WhatsApp.'
-            )
-
-            openShareId.value = null
-
-            return
-        }
-
-
-        const textArea =
-            document.createElement('textarea')
-
-        textArea.value = message
-
-        textArea.style.position = 'fixed'
-        textArea.style.opacity = '0'
-
-        document.body.appendChild(textArea)
-
-        textArea.select()
-
-        document.execCommand('copy')
-
-        document.body.removeChild(textArea)
-
-        openShareId.value = null
-
-    } catch (error) {
-
-        console.error(
-            'No se pudo copiar el texto para WhatsApp:',
-            error
-        )
-
-    }
-}
-
-
 const openWhatsApp = async (guest) => {
 
     if (!guest) return
@@ -387,8 +246,6 @@ const openWhatsApp = async (guest) => {
 
 
     window.open(waLink, '_blank')
-
-    openShareId.value = null
 }
 
 </script>

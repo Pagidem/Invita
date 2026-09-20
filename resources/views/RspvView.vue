@@ -18,74 +18,91 @@
                             </div>
 
                             <div v-else>
-                                <div class="text-center mb-2">
-                                    <p class="guest-label">{{ guestName ? 'Querido/a' : 'Cargando...' }}</p>
-                                    <h2 class="guest-name">{{ guestName || 'Buscando invitado...' }}</h2>
-                                </div>
-
-                                <div class="event-details compact-events">
-                                    <div class="event-item compact-item">
-                                        <span class="label">Fecha y hora</span>
-                                        <strong>19 oct 2026 · 7:00 PM</strong>
+                                <div v-if="!responseSaved" class="form-shell">
+                                    <div v-if="errorMessage" class="alert alert-danger mb-0 rounded-3 small">
+                                        {{ errorMessage }}
                                     </div>
-                                    <div class="event-item compact-item location-item">
-                                        <span class="label">Lugar</span>
-                                        <div class="location-inline">
-                                            <strong>Salón La Toscana</strong>
-                                            <a
-                                                class="gps-link"
-                                                :href="mapsUrl"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                aria-label="Abrir ubicación en Google Maps"
-                                                title="Abrir ubicación en Google Maps"
-                                            >
-                                                📍
-                                            </a>
+
+                                    <div class="text-center intro-block">
+                                        <p class="guest-label">{{ guestName ? 'Querido/a' : 'Cargando...' }}</p>
+                                        <h2 class="guest-name">{{ guestName || 'Buscando invitado...' }}</h2>
+                                    </div>
+
+                                    <div class="event-details">
+                                        <div class="event-item">
+                                            <span class="label">Fecha</span>
+                                            <strong>19 oct 2026</strong>
+                                        </div>
+                                        <div class="event-item">
+                                            <span class="label">Hora</span>
+                                            <strong>7:00 PM</strong>
+                                        </div>
+                                        <div class="event-item location-item">
+                                            <span class="label">Lugar</span>
+                                            <div class="location-inline">
+                                                <strong>Salón La Toscana</strong>
+                                                <a
+                                                    class="gps-link"
+                                                    :href="mapsUrl"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    aria-label="Abrir ubicación en Google Maps"
+                                                    title="Abrir ubicación en Google Maps"
+                                                >
+                                                    📍
+                                                </a>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div class="mt-2 mb-2">
-                                    <label class="form-label fw-semibold text-dark">¿Podrás acompañarnos?</label>
-                                    <div class="btn-group w-100 response-group" role="group" aria-label="Respuesta de asistencia">
-                                        <button
-                                            type="button"
-                                            class="btn option-btn"
-                                            :class="form.confirmation_status === 'confirmed' ? 'btn-primary selected' : 'btn-outline-primary'"
-                                            :disabled="saving"
-                                            @click="selectConfirmation('confirmed')"
-                                        >
-                                            Sí, asistiré
-                                        </button>
-                                        <button
-                                            type="button"
-                                            class="btn option-btn"
-                                            :class="form.confirmation_status === 'declined' ? 'btn-danger selected' : 'btn-outline-danger'"
-                                            :disabled="saving"
-                                            @click="selectConfirmation('declined')"
-                                        >
-                                            No podré asistir
-                                        </button>
+                                    <div class="choice-panel">
+                                        <label class="section-label">¿Podrás acompañarnos?</label>
+                                        <div class="response-group" role="group" aria-label="Respuesta de asistencia">
+                                            <button
+                                                type="button"
+                                                class="option-btn"
+                                                :class="form.confirmation_status === 'confirmed' ? 'selected confirmed' : 'outlined confirmed'"
+                                                :disabled="saving"
+                                                @click="selectConfirmation('confirmed')"
+                                            >
+                                                Sí, asistiré
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="option-btn"
+                                                :class="form.confirmation_status === 'declined' ? 'selected declined' : 'outlined declined'"
+                                                :disabled="saving"
+                                                @click="selectConfirmation('declined')"
+                                            >
+                                                No podré asistir
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div v-if="form.confirmation_status === 'confirmed'" class="mb-2 companions-box">
-                                    <label class="form-label fw-semibold text-dark">Cantidad de acompañantes</label>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        max="10"
-                                        class="form-control form-control-lg rounded-3 companions-input"
-                                        :value="form.companions"
-                                        @input="updateCompanions($event.target.value)"
-                                    >
-                                    <small class="text-muted d-block mt-2">Máximo 10 personas.</small>
-                                </div>
+                                    <div class="companions-box" :class="{ 'is-disabled': form.confirmation_status !== 'confirmed' }">
+                                        <div class="companions-header">
+                                            <label class="section-label">Cantidad de acompañantes</label>
+                                            <span class="mini-badge">{{ form.confirmation_status === 'confirmed' ? 'Activa' : 'En espera' }}</span>
+                                        </div>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            max="10"
+                                            class="companions-input"
+                                            :value="form.companions"
+                                            :disabled="form.confirmation_status !== 'confirmed' || saving"
+                                            @input="updateCompanions($event.target.value)"
+                                        >
+                                        <small class="helper-text">
+                                            {{ form.confirmation_status === 'confirmed'
+                                                ? 'Máximo 2 personas.'
+                                                : 'Selecciona “Sí, asistiré” para indicar cuántos acompañarán.' }}
+                                        </small>
+                                    </div>
 
-                                <div v-if="form.confirmation_status" class="d-grid gap-2 mt-1">
                                     <button
-                                        class="btn btn-primary btn-lg rounded-3 register-btn"
+                                        v-if="form.confirmation_status"
+                                        class="register-btn"
                                         :disabled="saving"
                                         @click="registerResponse"
                                     >
@@ -93,18 +110,25 @@
                                     </button>
                                 </div>
 
-                                <div v-if="hasExistingResponse && !form.confirmation_status" class="d-grid gap-2">
-                                    <button
-                                        class="btn btn-outline-secondary btn-lg rounded-3"
-                                        :disabled="saving"
-                                        @click="selectConfirmation('declined')"
-                                    >
-                                        Cancelar asistencia
-                                    </button>
-                                </div>
+                                <div v-else class="response-result-card" :class="responseCardClass">
+                                    <div class="response-icon">{{ responseSavedStatus === 'confirmed' ? '🎉' : '💙' }}</div>
+                                    <p class="response-kicker">
+                                        {{ responseSavedStatus === 'confirmed' ? '¡Qué alegría!' : 'Sentimos mucho' }}
+                                    </p>
+                                    <h3>
+                                        {{ responseSavedStatus === 'confirmed'
+                                            ? 'Nos alegra mucho que puedas acompañarnos'
+                                            : 'Lamentamos no poder compartir este momento contigo' }}
+                                    </h3>
+                                    <p class="response-message">
+                                        {{ responseSavedStatus === 'confirmed'
+                                            ? `Gracias por acompañarnos con ${form.companions || 1} ${form.companions === 1 ? 'persona' : 'personas'}. Esperamos celebrarlo contigo con mucho amor.`
+                                            : 'Te extrañaremos mucho, pero valoramos tu cariño y te queremos cerca aunque sea desde el corazón.' }}
+                                    </p>
 
-                                <div v-if="success" class="alert alert-success mt-3 mb-0 rounded-3">
-                                    ¡Gracias! Tu respuesta quedó registrada correctamente.
+                                    <button class="exit-btn" type="button" @click="closeInvitation">
+                                        Cerrar
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -125,6 +149,9 @@ const route = useRoute()
 const loading = ref(true)
 const saving = ref(false)
 const success = ref(false)
+const errorMessage = ref('')
+const responseSaved = ref(false)
+const responseSavedStatus = ref(null)
 
 const guest = ref({})
 
@@ -140,6 +167,11 @@ const form = ref({
 })
 
 const mapsUrl = 'https://maps.app.goo.gl/bZmqPkuyeVG86XAv8'
+
+const responseCardClass = computed(() => ({
+    'is-confirmed': responseSavedStatus.value === 'confirmed',
+    'is-declined': responseSavedStatus.value === 'declined',
+}))
 
 const hasExistingResponse = computed(() => {
     const status = guest.value?.confirmation_status ?? guest.value?.confirmacion ?? null
@@ -196,6 +228,7 @@ const registerResponse = async () => {
 
     saving.value = true
     success.value = false
+    errorMessage.value = ''
 
     try {
         const payload = {
@@ -205,12 +238,33 @@ const registerResponse = async () => {
 
         await api.post(`/rsvp/${route.params.token}`, payload)
         guest.value.confirmation_status = status
+        responseSaved.value = true
+        responseSavedStatus.value = status
         success.value = true
     } catch (error) {
         console.error(error)
+        errorMessage.value = 'No pudimos registrar tu respuesta. Inténtalo de nuevo.'
     } finally {
         saving.value = false
     }
+}
+
+const closeInvitation = () => {
+    if (window.opener) {
+        try {
+            window.close()
+            return
+        } catch (error) {
+            console.warn('No se pudo cerrar la ventana abierta por script.', error)
+        }
+    }
+
+    if (window.history.length > 1) {
+        window.history.back()
+        return
+    }
+
+    window.location.href = 'about:blank'
 }
 
 onMounted(() => {
@@ -222,106 +276,112 @@ onMounted(() => {
 .page-shell {
     min-height: 100vh;
     background:
-        radial-gradient(circle at top left, rgba(146, 179, 152, 0.18), transparent 28%),
-        radial-gradient(circle at bottom right, rgba(184, 197, 171, 0.16), transparent 30%),
-        linear-gradient(135deg, #f8f7f3 0%, #eef5ef 42%, #f3f7f1 100%);
+        radial-gradient(circle at top left, rgba(146, 179, 152, 0.16), transparent 26%),
+        radial-gradient(circle at bottom right, rgba(175, 190, 168, 0.14), transparent 28%),
+        linear-gradient(135deg, #f7f4ef 0%, #ecf3ee 45%, #f3f7f1 100%);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 24px 12px;
+    padding: 16px 12px;
 }
 
 .invitation-card {
-    background: rgba(255, 255, 255, 0.94);
-    border: 1px solid rgba(123, 155, 128, 0.18);
-    border-radius: 28px;
-    box-shadow: 0 24px 60px rgba(96, 120, 101, 0.12);
+    width: min(100%, 430px);
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(122, 148, 123, 0.16);
+    border-radius: 26px;
+    box-shadow: 0 22px 48px rgba(81, 101, 82, 0.12);
     overflow: hidden;
 }
 
 .invitation-header {
-    background: linear-gradient(135deg, #7da07d 0%, #6d8f6d 42%, #a9bca1 100%);
-    color: white;
+    background: linear-gradient(135deg, #8da88b 0%, #728f73 42%, #b7c7b3 100%);
+    color: #fff;
     text-align: center;
-    padding: 1.2rem 1rem 1rem;
+    padding: 1rem 0.9rem 0.9rem;
 }
 
 .eyebrow {
-    margin: 0 0 0.35rem;
+    margin: 0 0 0.2rem;
     text-transform: uppercase;
-    letter-spacing: 0.15rem;
-    font-size: 0.65rem;
-    opacity: 0.9;
+    letter-spacing: 0.12rem;
+    font-size: 0.62rem;
+    opacity: 0.92;
     font-weight: 700;
 }
 
 .invitation-header h1 {
     margin: 0;
-    font-size: clamp(1.35rem, 2.2vw, 1.8rem);
-    font-weight: 600;
+    font-size: clamp(1.35rem, 5vw, 1.7rem);
+    font-weight: 700;
     font-family: Georgia, 'Times New Roman', serif;
     letter-spacing: -0.04em;
 }
 
+.card-body {
+    padding: 1rem !important;
+}
+
+.form-shell {
+    display: grid;
+    gap: 0.9rem;
+}
+
+.intro-block {
+    margin-top: 0.2rem;
+}
+
 .guest-label {
-    margin: 0 0 0.5rem;
-    color: #637d6a;
+    margin: 0 0 0.35rem;
+    color: #6f8579;
     text-transform: uppercase;
     letter-spacing: 0.12rem;
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     font-weight: 700;
 }
 
 .guest-name {
     margin: 0;
-    font-size: clamp(1.9rem, 3vw, 2.5rem);
-    font-weight: 700;
-    color: #2b433d;
+    font-size: clamp(2rem, 7vw, 2.5rem);
+    line-height: 1.1;
+    color: #243b35;
     font-family: Georgia, 'Times New Roman', serif;
-    letter-spacing: -0.06em;
+    letter-spacing: -0.05em;
 }
 
 .event-details {
     display: grid;
-    gap: 0.6rem;
-    padding: 0.9rem 1rem;
-    background: linear-gradient(180deg, rgba(248, 245, 238, 0.95), rgba(239, 245, 239, 0.9));
-    border: 1px solid rgba(120, 147, 128, 0.18);
+    gap: 0.4rem;
+    padding: 0.8rem 0.9rem;
     border-radius: 18px;
+    background: linear-gradient(180deg, rgba(248,245,239,0.95), rgba(240,245,240,0.95));
+    border: 1px solid rgba(120, 147, 128, 0.18);
 }
 
 .event-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 0.8rem;
-    padding: 0.45rem 0.15rem;
-    border-bottom: 1px dashed rgba(120, 92, 167, 0.2);
+    gap: 0.6rem;
+    padding: 0.32rem 0;
+    border-bottom: 1px dashed rgba(107, 122, 110, 0.2);
 }
 
 .event-item:last-child {
     border-bottom: none;
 }
 
-.compact-item {
-    font-size: 0.92rem;
-}
-
 .label {
-    color: #6d867b;
-    font-size: 0.82rem;
-    font-weight: 600;
+    color: #687d73;
+    font-size: 0.76rem;
+    font-weight: 700;
 }
 
 .event-item strong {
-    color: #2f473f;
-    font-weight: 600;
+    color: #2d463f;
+    font-size: 0.9rem;
+    font-weight: 700;
     text-align: right;
-    line-height: 1.2;
-}
-
-.location-item {
-    gap: 0.5rem;
 }
 
 .location-inline {
@@ -345,66 +405,219 @@ onMounted(() => {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.9rem;
-    height: 1.9rem;
+    width: 1.8rem;
+    height: 1.8rem;
     border-radius: 50%;
     background: rgba(122, 155, 128, 0.12);
     color: #406257;
     text-decoration: none;
     font-size: 1rem;
     flex-shrink: 0;
-    margin-left: 0.1rem;
 }
 
-.gps-btn {
-    font-weight: 600;
-    text-decoration: none;
+.choice-panel {
+    display: grid;
+    gap: 0.65rem;
+    padding: 0.2rem 0;
 }
 
-.btn-primary {
-    background: linear-gradient(135deg, #8db094 0%, #6f9370 100%);
-    border: none;
-    box-shadow: 0 10px 18px rgba(111, 147, 112, 0.2);
-}
-
-.btn-primary:hover {
-    background: linear-gradient(135deg, #84a98d 0%, #648666 100%);
+.section-label {
+    margin: 0;
+    color: #2f473f;
+    font-size: 0.88rem;
+    font-weight: 700;
 }
 
 .response-group {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
 }
 
 .option-btn {
+    min-height: 50px;
+    border-radius: 14px;
+    border: 1px solid transparent;
+    font-weight: 700;
+    font-size: 0.92rem;
     transition: all 0.2s ease;
-    font-weight: 600;
-    min-height: 52px;
-    border-radius: 12px !important;
 }
 
 .option-btn.selected {
-    box-shadow: inset 0 0 0 2px rgba(255,255,255,0.55);
+    box-shadow: 0 12px 20px rgba(91, 121, 96, 0.12);
+    transform: translateY(-1px);
+}
+
+.option-btn.confirmed {
+    background: #dfeee1;
+    border-color: rgba(120, 164, 126, 0.32);
+    color: #2d5a3d;
+}
+
+.option-btn.declined {
+    background: #f3e9eb;
+    border-color: rgba(164, 117, 130, 0.25);
+    color: #7a4a52;
+}
+
+.option-btn.outlined {
+    background: transparent;
+    color: #4d6259;
+    border-color: rgba(117, 147, 120, 0.2);
+}
+
+.companions-box {
+    display: grid;
+    gap: 0.55rem;
+    padding: 0.9rem 0.9rem 0.7rem;
+    border-radius: 16px;
+    background: rgba(244, 243, 236, 0.9);
+    border: 1px solid rgba(121, 145, 126, 0.18);
+}
+
+.companions-box.is-disabled {
+    opacity: 0.72;
+}
+
+.companions-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.mini-badge {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08rem;
+    padding: 0.28rem 0.5rem;
+    border-radius: 999px;
+    background: rgba(127, 163, 132, 0.12);
+    color: #4c6d59;
+}
+
+.companions-input {
+    width: 100%;
+    min-height: 46px;
+    border: 1px solid rgba(120, 147, 128, 0.24);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.9);
+    color: #1f2f2c;
+    font-size: 1.05rem;
+    padding: 0.7rem 0.8rem;
+    outline: none;
+}
+
+.companions-input:focus {
+    border-color: rgba(107, 140, 111, 0.6);
+    box-shadow: 0 0 0 4px rgba(128, 169, 133, 0.15);
+}
+
+.helper-text {
+    display: block;
+    margin: 0;
+    color: #6a7d72;
+    font-size: 0.74rem;
+    line-height: 1.4;
 }
 
 .register-btn {
     min-height: 52px;
-    font-weight: 700;
-    letter-spacing: 0.02em;
+    border: 0;
     border-radius: 14px;
+    background: linear-gradient(135deg, #95b79a 0%, #6d9070 100%);
+    color: #fff;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    box-shadow: 0 14px 24px rgba(111, 147, 112, 0.2);
 }
 
-.companions-box {
-    padding: 1rem;
-    border: 1px solid rgba(120, 147, 128, 0.18);
-    border-radius: 16px;
-    background: rgba(244, 243, 236, 0.82);
+.response-result-card {
+    display: grid;
+    gap: 0.8rem;
+    padding: 1.4rem 1rem;
+    border-radius: 20px;
+    text-align: center;
+    background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(243,248,243,0.94));
+    border: 1px solid rgba(120, 147, 128, 0.2);
+    box-shadow: 0 14px 30px rgba(88, 108, 88, 0.08);
 }
 
-.companions-input {
-    border: 1px solid rgba(120, 147, 128, 0.22);
-    background: rgba(255,255,255,0.92);
+.response-result-card.is-confirmed {
+    background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(234,245,235,0.96));
+    border-color: rgba(120, 164, 126, 0.33);
+}
+
+.response-result-card.is-declined {
+    background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(245,239,240,0.96));
+    border-color: rgba(164, 117, 130, 0.28);
+}
+
+.response-icon {
+    font-size: 2.8rem;
+    line-height: 1;
+}
+
+.response-kicker {
+    margin: 0;
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.12rem;
+    text-transform: uppercase;
+    color: #617d6d;
+}
+
+.response-result-card h3 {
+    margin: 0;
+    color: #2b433d;
+    font-size: clamp(1.45rem, 5vw, 1.9rem);
+    line-height: 1.25;
+    font-family: Georgia, 'Times New Roman', serif;
+}
+
+.response-message {
+    margin: 0;
+    color: #4e665c;
+    line-height: 1.7;
+    font-size: 0.94rem;
+}
+
+.exit-btn {
+    margin-top: 0.3rem;
+    border: 0;
+    border-radius: 12px;
+    min-height: 46px;
+    background: rgba(103, 120, 108, 0.12);
+    color: #365145;
+    font-weight: 700;
+}
+
+@media (max-width: 576px) {
+    .page-shell {
+        padding: 10px 8px;
+    }
+
+    .invitation-card {
+        width: min(100%, 390px);
+    }
+
+    .card-body {
+        padding: 0.9rem !important;
+    }
+
+    .response-group {
+        gap: 0.5rem;
+    }
+
+    .option-btn {
+        min-height: 46px;
+        font-size: 0.86rem;
+    }
+
+    .register-btn {
+        min-height: 48px;
+    }
 }
 
 @media (max-width: 576px) {

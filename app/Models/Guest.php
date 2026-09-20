@@ -24,6 +24,11 @@ class Guest extends Model
         'confirmed_at',
     ];
 
+    protected $casts = [
+        'confirmed_at' => 'datetime',
+        'companions' => 'integer',
+    ];
+
     protected static function booted(): void
     {
         static::creating(function ($guest) {

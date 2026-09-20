@@ -7,7 +7,18 @@
                 <div class="header-row mb-1">
 
                     <div class="title-block">
-                        <p class="section-kicker">Panel Lista de Invitados</p>
+                        <div class="kicker-row">
+                            <p class="section-kicker">Panel Lista de Invitados</p>
+                            <button
+                                type="button"
+                                class="refresh-btn"
+                                @click="refreshGuestTable"
+                                title="Actualizar tabla"
+                                aria-label="Actualizar tabla"
+                            >
+                                <span aria-hidden="true">↻</span>
+                            </button>
+                        </div>
                     </div>
 
                 </div>
@@ -114,6 +125,11 @@ const loadGuest = async () => {
 };
 
 let timeout = null;
+
+const refreshGuestTable = async () => {
+    if (loading.value) return;
+    await loadGuest();
+};
 
 const changePage = (page) => {
     let p = Number(page) || 1;
@@ -249,13 +265,23 @@ const statusOrder = ['pendiente', 'confirmado', 'cancelado'];
 const updateConfirmation = async (guest) => {
     if (!guest?.id) return;
 
+    const nextStatus = normalizeStatus(guest.confirmacion);
+
     try {
-        await api.put(`/guests/${guest.id}`, {
+        const response = await api.put(`/guests/${guest.id}`, {
             ...guest,
-            confirmacion: normalizeStatus(guest.confirmacion),
+            confirmacion: nextStatus,
         });
 
-        await loadGuest();
+        const updatedConfirmacion = normalizeStatus(
+            response?.data?.data?.confirmacion ?? nextStatus
+        );
+
+        guests.value = guests.value.map((item) =>
+            item.id === guest.id
+                ? { ...item, confirmacion: updatedConfirmacion }
+                : item
+        );
     } catch (error) {
         console.error('Error al actualizar la confirmación:', error);
         alert('No se pudo actualizar la confirmación.');
@@ -297,7 +323,7 @@ onBeforeUnmount(() => {
 
 .header-row {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: space-between;
     gap: 16px;
 }
@@ -306,13 +332,48 @@ onBeforeUnmount(() => {
     min-width: 0;
 }
 
+.kicker-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+}
+
+.refresh-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid rgba(122, 155, 128, 0.3);
+    background: rgba(255, 255, 255, 0.72);
+    color: #496659;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.05rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.refresh-btn:hover {
+    background: rgba(122, 155, 128, 0.08);
+    border-color: rgba(122, 155, 128, 0.6);
+}
+
+.refresh-btn:active {
+    transform: scale(0.96);
+}
+
 .section-kicker {
-    margin: 0 0 4px;
+    margin: 0;
     color: #6a8675;
     font-size: 0.7rem;
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
+    line-height: 1.2;
 }
 
 .page-title {
@@ -368,6 +429,17 @@ onBeforeUnmount(() => {
         flex-direction: column;
         align-items: flex-start;
         gap: 10px;
+    }
+
+    .kicker-row {
+        gap: 6px;
+    }
+
+    .refresh-btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 7px;
+        font-size: 0.95rem;
     }
 
     .page-title {

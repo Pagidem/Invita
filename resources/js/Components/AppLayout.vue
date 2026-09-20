@@ -167,7 +167,7 @@ const exportGuestTemplate = async () => {
             responseType: 'blob',
         });
 
-        const contentType = response.headers['content-type'] || 'text/csv;charset=utf-8';
+        const contentType = response.headers['content-type'] || 'text/csv; charset=utf-8';
         const blob = new Blob([response.data], { type: contentType });
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -203,6 +203,14 @@ const handleImportFile = async (event) => {
     ];
 
     const fileName = file.name.trim().toLowerCase();
+    const extension = fileName.split('.').pop() || '';
+    const allowedExtensions = ['csv', 'xls', 'xlsx'];
+
+    if (!allowedExtensions.includes(extension)) {
+        alert('El archivo debe ser de tipo: csv, xlsx o xls.');
+        event.target.value = '';
+        return;
+    }
 
     if (!validNames.includes(fileName)) {
         alert('El nombre del archivo es incorrecto. Debe llamarse exactamente: plantilla_invitados.csv, plantilla_invitados.xls o plantilla_invitados.xlsx');
