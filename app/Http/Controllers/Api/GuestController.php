@@ -168,10 +168,31 @@ class GuestController extends Controller
             $firstLine = fgets($handle);
 
             if ($firstLine !== false) {
-                $delimiter = stripos($firstLine, ';') !== false ? ';' : ',';
+                // Choose delimiter by counting occurrences on the first line.
+                $countSemi = substr_count($firstLine, ';');
+                $countComma = substr_count($firstLine, ',');
+                $delimiter = $countSemi >= $countComma ? ';' : ',';
+
                 rewind($handle);
 
                 while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
+                    // If fgetcsv returned a single field that still contains the other
+                    // delimiter (common when the wrong delimiter is used), split it.
+                    if (count($row) === 1) {
+                        $single = (string) $row[0];
+
+                        // If the single field contains the chosen delimiter, split by it.
+                        if (strpos($single, $delimiter) !== false) {
+                            $row = str_getcsv($single, $delimiter);
+                        } else {
+                            // Otherwise, try the other delimiter as a fallback.
+                            $other = $delimiter === ';' ? ',' : ';';
+                            if (strpos($single, $other) !== false) {
+                                $row = str_getcsv($single, $other);
+                            }
+                        }
+                    }
+
                     $rows[] = $row;
                 }
             }
@@ -186,9 +207,22 @@ class GuestController extends Controller
         }
 
         $firstRow = $rows[0];
+
+        // If the header row was parsed as a single concatenated field, split it
+        // using the most likely delimiter.
+        if (count($firstRow) === 1) {
+            $firstRaw = (string) $firstRow[0];
+            $countSemi = substr_count($firstRaw, ';');
+            $countComma = substr_count($firstRaw, ',');
+            $hdrDelimiter = $countSemi >= $countComma ? ';' : ',';
+            $firstRow = str_getcsv($firstRaw, $hdrDelimiter);
+        }
+
         $header = array_map(function ($value) {
-            $value = preg_replace('/^\xEF\xBB\xBF/u', '', (string) $value);
-            $value = strtolower(trim((string) $value));
+            $value = (string) $value;
+            // Remove UTF-8 BOM in both byte-sequence and Unicode forms
+            $value = preg_replace('/^(\xEF\xBB\xBF|\x{FEFF})/u', '', $value);
+            $value = strtolower(trim($value));
 
             return str_replace([';', ','], '', $value);
         }, $firstRow);

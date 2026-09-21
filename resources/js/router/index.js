@@ -62,4 +62,18 @@ router.beforeEach((to) => {
     return true;
 });
 
+// Actualizar título de la pestaña según la ruta
+router.afterEach((to) => {
+    const baseTitle = 'Invita';
+    const routeTitles = {
+        
+        dashboard: 'Dashboard',
+        guests: 'Invitados',
+        rsvp: 'Confirmar asistencia',
+    };
+    
+    const pageTitle = routeTitles[to.name] || '';
+    document.title = pageTitle ? `${pageTitle} - ${baseTitle}` : baseTitle;
+});
+
 export default router;

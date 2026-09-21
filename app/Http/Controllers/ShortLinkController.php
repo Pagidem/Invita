@@ -43,29 +43,36 @@ class ShortLinkController extends Controller
     }
 
     public function redirect(string $code)
-    {
-        $link = ShortLink::where('code', $code)->firstOrFail();
+        {
+            $link = ShortLink::where('code', $code)->firstOrFail();
 
-        $title = 'Invitación - Confirma tu asistencia';
-        $description = 'Abre tu invitación y confirma tu asistencia en un solo clic.';
-        $image = url('/build/assets/invitation-preview.png');
+            $title = '💍 Invitación de Boda';
+            $description = 'Confirma tu asistencia';
+            $image = url('/images/invitacion.png');
+            $currentUrl = url()->current();
 
-        $html = '<!doctype html><html><head>' .
-            "<meta charset=\"utf-8\">" .
-            "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">" .
-            "<title>{$title}</title>" .
-            "<meta property=\"og:title\" content=\"{$title}\">" .
-            "<meta property=\"og:description\" content=\"{$description}\">" .
-            "<meta property=\"og:image\" content=\"{$image}\">" .
-            "<meta property=\"og:url\" content=\"{$link->target_url}\">" .
-            "<meta name=\"twitter:card\" content=\"summary_large_image\">" .
-            // meta refresh as a fallback for non-JS clients/crawlers
-            "<meta http-equiv=\"refresh\" content=\"0;url={$link->target_url}\">" .
-            '</head><body>' .
-            "<p>Redirigiendo a la invitación... <a href=\"{$link->target_url}\">Abrir</a></p>" .
-            "<script>window.location.replace(" . json_encode($link->target_url) . ");</script>" .
-            '</body></html>';
+            $html = '<!doctype html><html><head>' .
+                "<meta charset=\"utf-8\">" .
+                "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">" .
+                "<title>{$title}</title>" .
+                "<meta property=\"og:type\" content=\"website\">" .
+                "<meta property=\"og:title\" content=\"{$title}\">" .
+                "<meta property=\"og:description\" content=\"{$description}\">" .
+                "<meta property=\"og:image\" content=\"{$image}\">" .
+                "<meta property=\"og:url\" content=\"{$currentUrl}\">" .
+                "<meta property=\"og:image:width\" content=\"1200\">" .
+                "<meta property=\"og:image:height\" content=\"630\">" .
+                "<meta name=\"twitter:card\" content=\"summary_large_image\">" .
+                "<meta name=\"twitter:title\" content=\"{$title}\">" .
+                "<meta name=\"twitter:description\" content=\"{$description}\">" .
+                "<meta name=\"twitter:image\" content=\"{$image}\">" .
+                // meta refresh as a fallback for non-JS clients/crawlers
+                "<meta http-equiv=\"refresh\" content=\"0;url={$link->target_url}\">" .
+                '</head><body>' .
+                "<p>Redirigiendo a la invitación... <a href=\"{$link->target_url}\">Abrir</a></p>" .
+                "<script>window.location.replace(" . json_encode($link->target_url) . ");</script>" .
+                '</body></html>';
 
-        return response($html, 200)->header('Content-Type', 'text/html');
-    }
+            return response($html, 200)->header('Content-Type', 'text/html');
+        }
 }
