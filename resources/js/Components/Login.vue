@@ -42,12 +42,14 @@
                         </div>
 
                         <button
-                            type="submit"
-                            class="btn btn-primary w-100 custom-button"
-                            :disabled="loading"
-                        >
-                            {{ loading ? 'Ingresando...' : 'Ingresar' }}
-                        </button>
+                                                    type="submit"
+                                                    class="btn btn-primary w-100 custom-button"
+                                                    :disabled="loading"
+                                                    :class="{ 'btn-loading': loading }"
+                                                >
+                                                    <span v-if="loading" class="btn-spinner" aria-hidden="true"></span>
+                                                    <span class="btn-text">{{ loading ? 'Ingresando...' : 'Ingresar' }}</span>
+                                                </button>
                     </form>
                 </div>
             </div>
@@ -60,6 +62,7 @@ import { ref } from 'vue';
 
 import { useRouter } from 'vue-router';
 import auth from '../Services/auth.js';
+import { initAuthUser } from '../Composables/useAuthUser.js';
 
 const router = useRouter();
 
@@ -80,9 +83,8 @@ const login = async () => {
 
         console.log('Login correcto :', response);
 
-        const profile = await auth.profile();
-
-        console.log('Perfil del usuario :', profile);
+        // Inicializar usuario global (una sola vez)
+        await initAuthUser();
 
         router.push({ name: 'dashboard' });
 
@@ -330,6 +332,33 @@ const login = async () => {
 .custom-button:disabled {
     opacity: 0.8;
     cursor: wait;
+}
+
+/* Spinner en botón de login */
+.custom-button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2.5px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: btnSpin 0.75s linear infinite;
+    flex-shrink: 0;
+}
+
+.btn-loading .btn-text {
+    opacity: 0.9;
+}
+
+@keyframes btnSpin {
+    to { transform: rotate(360deg); }
 }
 
 @media (max-width: 900px) {

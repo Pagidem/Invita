@@ -196,8 +196,8 @@ const openWhatsApp = async (guest) => {
         guest.first_name || 'invitado'
 
 
-    const baseUrl =
-        window.location.origin
+    const baseUrl = `{window.location.origin}/api`
+        
 
 
     const token =

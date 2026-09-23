@@ -1,59 +1,59 @@
 <template>
-    <AppLayout>
-        <div class="card section-card shadow-sm">
+    <div class="card section-card shadow-sm">
 
-            <div class="card-body section-body">
+        <div class="card-body section-body">
 
-                <div class="header-row mb-1">
+            <div class="header-row mb-1">
 
-                    <div class="title-block">
-                        <div class="kicker-row">
-                            <p class="section-kicker">Panel Lista de Invitados</p>
-                            <button
-                                type="button"
-                                class="refresh-btn"
-                                @click="refreshGuestTable"
-                                title="Actualizar tabla"
-                                aria-label="Actualizar tabla"
-                            >
-                                <span aria-hidden="true">↻</span>
-                            </button>
-                        </div>
-                    </div>
-
-                </div>
-
-                <div class="search-row mb-1">
-                    <input
-                            v-model="search"
-                            class="form-control search-input"
-                            type="text"
-                            placeholder="Buscar invitado..."
-                            @input="debounceLoadGuests"
+                <div class="title-block">
+                    <div class="kicker-row">
+                        <p class="section-kicker">Panel Lista de Invitados</p>
+                        <button
+                            type="button"
+                            class="refresh-btn"
+                            @click="refreshGuestTable"
+                            title="Actualizar tabla"
+                            aria-label="Actualizar tabla"
                         >
+                            <span aria-hidden="true">↻</span>
+                        </button>
+                    </div>
                 </div>
 
-                
-                <div v-if="loading" class="text-center py-3">
-                    Cargando invitados...
-                </div>
+            <div class="search-row mb-1">
+                <input
+                        v-model="search"
+                        class="form-control search-input"
+                        type="text"
+                        placeholder="Buscar invitado..."
+                        @input="debounceLoadGuests"
+                    >
+            </div>
 
-                <div v-else>
-                    <GuestTable
-                        :guests="guests"
-                        :current-page="currentPage"
-                        :last-page="lastPage"
-                        @edit-guest="editGuest"
-                        @delete-guest="deleteGuest"
-                        @update-confirmacion="updateConfirmation"
-                        @change-page="changePage"
-                    />
+            
+            <div v-if="loading" class="guests-loading">
+                <div class="loading-spinner-card">
+                    <div class="loading-spinner-ring"></div>
+                    <p class="loading-text">Cargando invitados</p>
+                    <p class="loading-subtext">Sincronizando registros...</p>
                 </div>
+            </div>
 
+            <div v-else>
+                <GuestTable
+                    :guests="guests"
+                    :current-page="currentPage"
+                    :last-page="lastPage"
+                    @edit-guest="editGuest"
+                    @delete-guest="deleteGuest"
+                    @update-confirmacion="updateConfirmation"
+                    @change-page="changePage"
+                />
             </div>
 
         </div>
-    </AppLayout>
+
+    </div>
 
 
     <div
@@ -83,7 +83,6 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-import AppLayout from './AppLayout.vue';
 import api from '../Services/axios.js';
 import GuestTable from './guests/GuestTable.vue';
 import GuestModal from './guests/GuestModal.vue';
@@ -450,4 +449,52 @@ onBeforeUnmount(() => {
         font-size: 0.82rem;
     }
 
+}
+
+/* Loading spinner para invitados */
+.guests-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    min-height: 300px;
+}
+
+.loading-spinner-card {
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(120, 147, 128, 0.15);
+    border-radius: 16px;
+    padding: 36px 44px;
+    text-align: center;
+    box-shadow: 0 12px 28px rgba(95, 120, 104, 0.1);
+}
+
+.loading-spinner-ring {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 16px;
+    border: 3.5px solid rgba(122, 155, 128, 0.18);
+    border-top-color: #7a9d88;
+    border-radius: 50%;
+    animation: loadingSpin 1s linear infinite;
+}
+
+.loading-text {
+    margin: 0 0 6px;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2d463e;
+    letter-spacing: 0.02em;
+}
+
+.loading-subtext {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #6d8878;
+    font-weight: 500;
+}
+
+@keyframes loadingSpin {
+    to { transform: rotate(360deg); }
 }</style>

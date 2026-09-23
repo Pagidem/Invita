@@ -9,8 +9,8 @@
                 </div>
 
                 <div class="topbar-actions">
-                    <span v-if="user" class="user-pill">
-                        {{ user.name }}
+                    <span v-if="authUser" class="user-pill">
+                        {{ authUser.name }}
                     </span>
 
                     <button class="logout-toggle" @click="logout" type="button">
@@ -82,9 +82,24 @@
 
                 <section class="col-md-9 col-lg-10">
                     <div class="content-panel">
-                        <slot />
+                        <RouterView />
                     </div>
                 </section>
+
+                <!-- Overlay de importación -->
+                <div
+                    v-if="isImporting"
+                    class="import-overlay"
+                    role="status"
+                    aria-live="polite"
+                    aria-label="Importando contactos"
+                >
+                    <div class="import-spinner-card">
+                        <div class="spinner-ring"></div>
+                        <p class="import-text">IMPORTANDO</p>
+                        <p class="import-subtext">Procesando contactos...</p>
+                    </div>
+                </div>
             </div>
 
             <div
@@ -139,15 +154,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import auth from '../Services/auth.js';
+import { RouterView } from 'vue-router';
 import api from '../Services/axios.js';
+import auth from '../Services/auth.js';
+import { authUser, clearAuthUser } from '../Composables/useAuthUser.js';
 
 const router = useRouter();
-const user = ref(null);
 const showQuickActions = ref(false);
 const importInput = ref(null);
+const isImporting = ref(false);
 
 const goToCreateGuest = async () => {
     showQuickActions.value = false;
@@ -221,6 +238,8 @@ const handleImportFile = async (event) => {
     const formData = new FormData();
     formData.append('file', file);
 
+    isImporting.value = true;
+
     try {
         const response = await api.post('/guests/import', formData, {
             headers: {
@@ -235,6 +254,7 @@ const handleImportFile = async (event) => {
         const message = error?.response?.data?.message || 'No se pudo importar la planilla.';
         alert(message);
     } finally {
+        isImporting.value = false;
         event.target.value = '';
     }
 };
@@ -243,25 +263,16 @@ const toggleQuickActions = () => {
     showQuickActions.value = !showQuickActions.value;
 };
 
-onMounted(async () => {
-    try {
-        const profile = await auth.profile();
-        user.value = profile;
-        console.log('Perfil del usuario :', profile);
-    } catch (err) {
-        console.error('Error al obtener el perfil del usuario', err);
-        router.push({ name: 'login' });
-    }
-});
-
 const logout = async () => {
     try {
         await auth.logout();
         console.log('Sesión cerrada correctamente');
-        router.push({ name: 'login' });
     } catch (err) {
         console.error('Error al cerrar sesión', err);
+    } finally {
+        clearAuthUser();
         localStorage.removeItem('token');
+        router.push({ name: 'login' });
     }
 };
 
@@ -492,6 +503,64 @@ const logout = async () => {
 
 .hidden-file-input {
     display: none;
+}
+
+/* Overlay de importación */
+.import-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    background: rgba(45, 70, 62, 0.55);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease;
+}
+
+.import-spinner-card {
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(120, 147, 128, 0.18);
+    border-radius: 20px;
+    padding: 40px 48px;
+    text-align: center;
+    box-shadow: 0 20px 48px rgba(95, 120, 104, 0.2);
+    min-width: 220px;
+}
+
+.spinner-ring {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 18px;
+    border: 4px solid rgba(122, 155, 128, 0.18);
+    border-top-color: #7a9d88;
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+}
+
+.import-text {
+    margin: 0 0 6px;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2d463e;
+    letter-spacing: 0.08em;
+}
+
+.import-subtext {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #6d8878;
+    font-weight: 500;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 @media (max-width: 767.98px) {
