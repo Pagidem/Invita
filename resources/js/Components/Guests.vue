@@ -19,6 +19,7 @@
                         </button>
                     </div>
                 </div>
+            </div>
 
             <div class="search-row mb-1">
                 <input
