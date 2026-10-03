@@ -44,6 +44,14 @@
                                 Invitados
                             </RouterLink>
 
+                            <RouterLink
+                                to="/guests"
+                                class="sidebar-link"
+                                active-class="active"
+                            >
+                                Mesas
+                            </RouterLink>
+
                             <button
                                 class="sidebar-action"
                                 type="button"

@@ -110,25 +110,71 @@
                                     </button>
                                 </div>
 
-                                <div v-else class="response-result-card" :class="responseCardClass">
-                                    <div class="response-icon">{{ responseSavedStatus === 'confirmed' ? '🎉' : '💙' }}</div>
-                                    <p class="response-kicker">
-                                        {{ responseSavedStatus === 'confirmed' ? '¡Qué alegría!' : 'Sentimos mucho' }}
-                                    </p>
-                                    <h3>
-                                        {{ responseSavedStatus === 'confirmed'
-                                            ? 'Nos alegra mucho que puedas acompañarnos'
-                                            : 'Lamentamos no poder compartir este momento contigo' }}
-                                    </h3>
-                                    <p class="response-message">
-                                        {{ responseSavedStatus === 'confirmed'
-                                            ? `Gracias por acompañarnos con ${form.companions || 1} ${form.companions === 1 ? 'persona' : 'personas'}. Esperamos celebrarlo contigo con mucho amor.`
-                                            : 'Te extrañaremos mucho, pero valoramos tu cariño y te queremos cerca aunque sea desde el corazón.' }}
-                                    </p>
+                                <div
+                                    v-else
+                                    class="response-result-card"
+                                    :class="responseCardClass"
+                                >
 
-                                    <button class="exit-btn" type="button" @click="closeInvitation">
-                                        Cerrar
-                                    </button>
+                                    <!-- Vista especial cuando confirma -->
+                                    <div
+                                        v-if="responseSavedStatus === 'confirmed'"
+                                        class="confirmation-background-card"
+                                        :style="confirmationBackgroundStyle"
+                                    >
+                                        <div class="confirmation-overlay">
+                                            <div class="response-icon">🎉</div>
+
+                                            <p class="response-kicker">
+                                                ¡Qué alegría!
+                                            </p>
+
+                                            <h3>
+                                                Nos alegra mucho que puedas acompañarnos
+                                            </h3>
+
+                                            <p class="response-message">
+                                                Gracias por acompañarnos con
+                                                {{ form.companions || 1 }}
+                                                {{ form.companions === 1 ? 'persona' : 'personas' }}.
+                                                Esperamos celebrarlo contigo con mucho amor.
+                                            </p>
+
+                                            <button
+                                                class="exit-btn"
+                                                type="button"
+                                                @click="closeInvitation"
+                                            >
+                                                Cerrar
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Vista actual cuando rechaza -->
+                                    <template v-else>
+                                        <div class="response-icon">💙</div>
+
+                                        <p class="response-kicker">
+                                            Sentimos mucho
+                                        </p>
+
+                                        <h3>
+                                            Lamentamos no poder compartir este momento contigo
+                                        </h3>
+
+                                        <p class="response-message">
+                                            Te extrañaremos mucho, pero valoramos tu cariño y te queremos cerca aunque sea desde el corazón.
+                                        </p>
+
+                                        <button
+                                            class="exit-btn"
+                                            type="button"
+                                            @click="closeInvitation"
+                                        >
+                                            Cerrar
+                                        </button>
+                                    </template>
+
                                 </div>
                             </div>
                         </div>
@@ -267,6 +313,10 @@ const closeInvitation = () => {
     window.location.href = 'about:blank'
 }
 
+const confirmationBackgroundStyle = computed(() => ({
+backgroundImage: `url('/images/portada1.jpg')`,
+}))
+
 onMounted(() => {
     loadGuest()
 })
@@ -284,6 +334,69 @@ onMounted(() => {
     justify-content: center;
     padding: 16px 12px;
 }
+
+.confirmation-background-card {
+    position: relative;
+    overflow: hidden;
+
+    min-height: 450px;
+    border-radius: 24px;
+
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.confirmation-background-card::before {
+    content: '';
+
+    position: absolute;
+    inset: 0;
+
+    background:
+        linear-gradient(
+            to bottom,
+            rgba(0, 0, 0, 0.45),
+            rgba(0, 0, 0, 0.35)
+        );
+
+    z-index: 1;
+}
+
+.confirmation-overlay {
+    position: relative;
+    z-index: 2;
+
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    text-align: center;
+    padding: 2rem;
+
+    color: white;
+}
+
+.confirmation-overlay h3 {
+    color: white;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.confirmation-overlay p {
+    color: white;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.confirmation-overlay .response-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+
+
 
 .invitation-card {
     width: min(100%, 430px);
@@ -565,12 +678,12 @@ onMounted(() => {
     font-weight: 800;
     letter-spacing: 0.12rem;
     text-transform: uppercase;
-    color: #617d6d;
+    color: #e8eeea;
 }
 
 .response-result-card h3 {
     margin: 0;
-    color: #2b433d;
+    color: #e8eeec;
     font-size: clamp(1.45rem, 5vw, 1.9rem);
     line-height: 1.25;
     font-family: Georgia, 'Times New Roman', serif;
@@ -578,7 +691,7 @@ onMounted(() => {
 
 .response-message {
     margin: 0;
-    color: #4e665c;
+    color: #151615;
     line-height: 1.7;
     font-size: 0.94rem;
 }
@@ -588,8 +701,8 @@ onMounted(() => {
     border: 0;
     border-radius: 12px;
     min-height: 46px;
-    background: rgba(103, 120, 108, 0.12);
-    color: #365145;
+    background: rgba(20, 20, 20, 0.253);
+    color: #ffffff;
     font-weight: 700;
 }
 

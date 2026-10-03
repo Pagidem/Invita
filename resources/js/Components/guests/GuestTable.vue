@@ -55,6 +55,8 @@
                             </button>
                         </td>
 
+                        
+
                         <td>
                             <div class="d-flex flex-wrap align-items-center">
 
@@ -196,7 +198,7 @@ const openWhatsApp = async (guest) => {
         guest.first_name || 'invitado'
 
 
-    const baseUrl = `{window.location.origin}/api`
+   const baseUrl = `${window.location.origin}/api`
         
 
 
@@ -230,8 +232,8 @@ const openWhatsApp = async (guest) => {
 
     const plainMessage =
         `¡Hola ${guestName}!\n\n` +
-        `Te invitamos a confirmar tu asistencia a nuestra celebración.\n\n` +
-        `Abre tu invitación aquí:\n${rsvpUrl}\n\n` +
+        `Con mucha alegria y por gracia de Dios te invitamos a compartir nuestra celebracion JUNTOS!.\n\n` +
+        `Abre tu invitación dando click aquí:\n${rsvpUrl}\n\n` +
         `¡Gracias por acompañarnos!`
 
     const guestPhone =
@@ -246,6 +248,46 @@ const openWhatsApp = async (guest) => {
 
 
     window.open(waLink, '_blank')
+}
+
+const shareInvitation = async () => {
+
+    const imageUrl =
+        `${window.location.origin}/images/invitacion.png`
+
+    try {
+
+        const response = await fetch(imageUrl)
+
+        const blob = await response.blob()
+
+        const file = new File(
+            [blob],
+            'invitacion.png',
+            {
+                type: blob.type || 'image/png'
+            }
+        )
+
+        if (
+            navigator.canShare &&
+            navigator.canShare({ files: [file] })
+        ) {
+
+            await navigator.share({
+                files: [file]
+            })
+
+            return
+        }
+
+        alert('Este dispositivo no permite compartir la imagen directamente.')
+
+    } catch (error) {
+
+        console.error(error)
+
+    }
 }
 
 </script>
