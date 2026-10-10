@@ -49,6 +49,7 @@
                     @delete-guest="deleteGuest"
                     @update-confirmacion="updateConfirmation"
                     @change-page="changePage"
+                    @refresh="refreshGuestTable"
                 />
             </div>
 

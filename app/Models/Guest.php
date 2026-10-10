@@ -16,6 +16,7 @@ class Guest extends Model
         'last_name',
         'phone',
         'email',
+        'mesa_id',
         'invitations',
         'confirmacion',
         'notes',
@@ -36,5 +37,10 @@ class Guest extends Model
                 $guest->confirmation_token = (string) Str::uuid();
             }
         });
+    }
+
+    public function mesa()
+    {
+        return $this->belongsTo(Mesa::class);
     }
 }

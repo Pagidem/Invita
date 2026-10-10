@@ -45,7 +45,7 @@
                             </RouterLink>
 
                             <RouterLink
-                                to="/guests"
+                                to="/mesas"
                                 class="sidebar-link"
                                 active-class="active"
                             >
@@ -416,6 +416,16 @@ const logout = async () => {
     max-width: 1400px;
     margin: 0 auto;
     padding: 22px 18px 28px;
+}
+
+.page-content .row {
+    min-height: 0;
+    align-items: flex-start;
+}
+
+.page-content aside {
+    position: static;
+    align-self: flex-start;
 }
 
 .sidebar-card {

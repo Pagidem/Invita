@@ -6,6 +6,8 @@ use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Database\Seeders\MesaSeeder;
+
 
 class DatabaseSeeder extends Seeder
 {
@@ -23,9 +25,10 @@ class DatabaseSeeder extends Seeder
             'email' => 'admin@invita.com',
             'password' => Hash::make('12345678'),
         ]);
-        /*
+        
         $this->call([
-            GuestSeeder::class,
-        ]);*/
+            //GuestSeeder::class,
+            MesaSeeder::class,
+        ]);
     }
 }

@@ -8,6 +8,7 @@ use App\Http\Requests\StoreGuestRequest;
 use App\Http\Requests\UpdateGuestRequest;
 use App\Http\Resources\GuestResource;
 use App\Models\Guest;
+use App\Models\Mesa;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
@@ -26,15 +27,19 @@ class GuestController extends Controller
 
         $perPage = (int) $request->input('per_page', 10);
 
-        $perPage = min(max($perPage, 1), 50);
+        $perPage = min(max($perPage, 1), 150);
 
-        $guests = Guest::query()->when($search, function ($query) use ($search) {
-            $query->where('first_name', 'like', "%{$search}%")->
-            orWhere('last_name', 'like', "%{$search}%")->
-            orWhere('email', 'like', "%{$search}%")->
-            orWhere('phone', 'like', "%{$search}%");
-
-        })->orderBy('id')->paginate($perPage)->withQueryString();
+        $guests = Guest::query()
+        ->with('mesa')
+        ->when($search, function ($query) use ($search) {
+            $query->where('first_name', 'like', "%{$search}%")
+                ->orWhere('last_name', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%")
+                ->orWhere('phone', 'like', "%{$search}%");
+        })
+        ->orderBy('id')
+        ->paginate($perPage)
+        ->withQueryString();
 
         //$guest = Guest::orderBy('id')->paginate(10);
 
@@ -71,7 +76,9 @@ class GuestController extends Controller
     {
         //return new GuestResource($guest);
         return response()->json([
-            'data' => new GuestResource($guest),
+            'data' => new GuestResource(
+                $guest->load('mesa')
+                ),
         ]);
     }
     
@@ -81,8 +88,43 @@ class GuestController extends Controller
      */
     public function update(UpdateGuestRequest $request, Guest $guest)
     {
-        $guest->update($request->validated());
-        
+        $data = $request->validated();
+
+        if (
+            isset($data['mesa_id']) &&
+            $data['mesa_id'] !== null &&
+            $data['mesa_id'] != $guest->mesa_id
+        ) {
+
+            $mesa = Mesa::findOrFail(
+                $data['mesa_id']
+            );
+
+            $ocupacionActual = $mesa->guests()
+                ->whereNotIn('confirmacion', ['cancelado'])
+                ->where('id', '!=', $guest->id)
+                ->get()
+                ->sum(function ($guestMesa) {
+
+                    return 1 + ($guestMesa->companions ?? 0);
+                });
+
+            $ocupacionInvitado =
+                1 + ($guest->companions ?? 0);
+
+            if (
+                ($ocupacionActual + $ocupacionInvitado)
+                > 10
+            ) {
+
+                return response()->json([
+                    'message' => 'La mesa no tiene espacio suficiente para esta invitación.',
+                ], 422);
+            }
+        }
+
+        $guest->update($data);
+
         return response()->json([
             'message' => 'Invitado actualizado',
             'data' => new GuestResource($guest->fresh()),
@@ -98,6 +140,141 @@ class GuestController extends Controller
 
         return response()->json([
             'message' => 'Invitado eliminado',
+        ]);
+    }
+
+    public function byMesa(Request $request)
+    {
+        $mesaId = $request->input('mesa_id');
+
+        $query = Guest::query()->with('mesa')->whereNotNull('mesa_id');
+
+        if ($mesaId !== null && $mesaId !== '') {
+            $query->where('mesa_id', (int) $mesaId);
+        }
+
+        $guests = $query->orderBy('mesa_id')->orderBy('last_name')->orderBy('first_name')->get();
+
+        return response()->json([
+            'data' => GuestResource::collection($guests),
+            'total' => $guests->count(),
+        ]);
+    }
+
+    public function assignMesa(Request $request, Guest $guest)
+    {
+        $validated = $request->validate([
+            'mesa_id' => ['required', 'integer', 'exists:mesas,id'],
+        ]);
+
+        $mesa = Mesa::findOrFail(
+            $validated['mesa_id']
+        );
+
+        $ocupacionActual = $mesa->guests()
+            ->whereNotIn('confirmacion', ['cancelado'])
+            ->get()
+            ->sum(function ($guest) {
+
+                return 1 + ($guest->companions ?? 0);
+            });
+
+        $ocupacionNuevoInvitado =
+            1 + ($guest->companions ?? 0);
+
+        if (
+            ($ocupacionActual + $ocupacionNuevoInvitado)
+            > 10
+        ) {
+
+            return response()->json([
+                'message' => 'La mesa no tiene espacio suficiente para esta invitación.',
+            ], 422);
+        }
+
+
+        $guest->update([
+            'mesa_id' => $validated['mesa_id'],
+        ]);
+
+        $guest->load('mesa');
+
+        return response()->json([
+            'message' => 'Mesa asignada correctamente.',
+            'data' => new GuestResource($guest),
+        ]);
+    }
+
+    public function assignGuestsToMesa(
+        Request $request,
+        Mesa $mesa
+    )
+    {
+        $validated = $request->validate([
+            'guest_ids' => ['required', 'array'],
+            'guest_ids.*' => ['integer', 'exists:guests,id'],
+        ]);
+
+        $guests = Guest::whereIn(
+            'id',
+            $validated['guest_ids']
+        )->get();
+
+        $ocupacionActual = $mesa->invitados_actuales;
+
+        $ocupacionNueva = $guests->sum(function ($guest) {
+
+            return 1 + ($guest->companions ?? 0);
+        });
+
+        if (
+            ($ocupacionActual + $ocupacionNueva)
+            > 10
+        ) {
+
+            return response()->json([
+                'message' =>
+                    'La mesa no tiene capacidad suficiente.',
+            ], 422);
+        }
+
+        Guest::whereIn(
+            'id',
+            $validated['guest_ids']
+        )->update([
+            'mesa_id' => $mesa->id,
+        ]);
+
+        return response()->json([
+            'message' =>
+                'Invitados asignados correctamente.',
+        ]);
+    }
+    
+    public function updateMesa(Request $request, Mesa $mesa)
+    {
+        $validated = $request->validate([
+            'numero' => ['nullable', 'integer', 'min:1', 'unique:mesas,numero,' . $mesa->id],
+            'color' => ['nullable', 'string', 'max:50'],
+        ]);
+
+        $mesa->update(array_filter($validated, fn ($value) => $value !== null));
+
+        return response()->json([
+            'message' => 'Mesa actualizada correctamente.',
+            'data' => $mesa->fresh(),
+        ]);
+    }
+
+    public function removeMesaAssignment(Guest $guest)
+    {
+        $guest->update([
+            'mesa_id' => null,
+        ]);
+
+        return response()->json([
+            'message' => 'Se eliminó la asignación de la mesa.',
+            'data' => new GuestResource($guest->fresh()),
         ]);
     }
 

@@ -31,24 +31,20 @@
                                     <div class="event-details">
                                         <div class="event-item">
                                             <span class="label">Fecha</span>
-                                            <strong>19 oct 2026</strong>
+                                            <strong>8 de Noviembre 2026</strong>
                                         </div>
                                         <div class="event-item">
                                             <span class="label">Hora</span>
-                                            <strong>7:00 PM</strong>
+                                            <strong>5:30 PM</strong>
                                         </div>
                                         <div class="event-item location-item">
                                             <span class="label">Lugar</span>
                                             <div class="location-inline">
-                                                <strong>Salón La Toscana</strong>
-                                                <a
-                                                    class="gps-link"
-                                                    :href="mapsUrl"
-                                                    target="_blank"
+                                                <strong>Salón La Finca Km 9</strong>
+                                                <a class="gps-link" :href="mapsUrl" target="_blank"
                                                     rel="noopener noreferrer"
                                                     aria-label="Abrir ubicación en Google Maps"
-                                                    title="Abrir ubicación en Google Maps"
-                                                >
+                                                    title="Abrir ubicación en Google Maps">
                                                     📍
                                                 </a>
                                             </div>
@@ -58,70 +54,51 @@
                                     <div class="choice-panel">
                                         <label class="section-label">¿Podrás acompañarnos?</label>
                                         <div class="response-group" role="group" aria-label="Respuesta de asistencia">
-                                            <button
-                                                type="button"
-                                                class="option-btn"
+                                            <button type="button" class="option-btn"
                                                 :class="form.confirmation_status === 'confirmed' ? 'selected confirmed' : 'outlined confirmed'"
-                                                :disabled="saving"
-                                                @click="selectConfirmation('confirmed')"
-                                            >
+                                                :disabled="saving" @click="selectConfirmation('confirmed')">
                                                 Sí, asistiré
                                             </button>
-                                            <button
-                                                type="button"
-                                                class="option-btn"
+                                            <button type="button" class="option-btn"
                                                 :class="form.confirmation_status === 'declined' ? 'selected declined' : 'outlined declined'"
-                                                :disabled="saving"
-                                                @click="selectConfirmation('declined')"
-                                            >
+                                                :disabled="saving" @click="selectConfirmation('declined')">
                                                 No podré asistir
                                             </button>
                                         </div>
                                     </div>
 
-                                    <div class="companions-box" :class="{ 'is-disabled': form.confirmation_status !== 'confirmed' }">
+                                    <div class="companions-box"
+                                        :class="{ 'is-disabled': form.confirmation_status !== 'confirmed' }">
                                         <div class="companions-header">
                                             <label class="section-label">Cantidad de acompañantes</label>
-                                            <span class="mini-badge">{{ form.confirmation_status === 'confirmed' ? 'Activa' : 'En espera' }}</span>
+                                            <span class="mini-badge">{{ form.confirmation_status === 'confirmed' ?
+                                                'Activa' : 'En espera' }}</span>
                                         </div>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            max="10"
-                                            class="companions-input"
+                                        <input type="number" min="0" :max="maxCompanions" class="companions-input"
                                             :value="form.companions"
                                             :disabled="form.confirmation_status !== 'confirmed' || saving"
                                             @input="updateCompanions($event.target.value)"
-                                        >
+                                            >
                                         <small class="helper-text">
-                                            {{ form.confirmation_status === 'confirmed'
-                                                ? 'Máximo 2 personas.'
-                                                : 'Selecciona “Sí, asistiré” para indicar cuántos acompañarán.' }}
+                                            {{
+                                                form.confirmation_status === 'confirmed'
+                                                    ? `Esta invitación incluye ${guest.invitations || 1} pase(s). Puedes registrar hasta ${maxCompanions} acompañante(s).`
+                                                    : 'Selecciona "Sí, asistiré" para indicar cuántos acompañantes te acompañarán.'
+                                            }}
                                         </small>
                                     </div>
 
-                                    <button
-                                        v-if="form.confirmation_status"
-                                        class="register-btn"
-                                        :disabled="saving"
-                                        @click="registerResponse"
-                                    >
+                                    <button v-if="form.confirmation_status" class="register-btn" :disabled="saving"
+                                        @click="registerResponse">
                                         {{ saving ? 'Registrando...' : 'Registrar respuesta' }}
                                     </button>
                                 </div>
 
-                                <div
-                                    v-else
-                                    class="response-result-card"
-                                    :class="responseCardClass"
-                                >
+                                <div v-else class="response-result-card" :class="responseCardClass">
 
                                     <!-- Vista especial cuando confirma -->
-                                    <div
-                                        v-if="responseSavedStatus === 'confirmed'"
-                                        class="confirmation-background-card"
-                                        :style="confirmationBackgroundStyle"
-                                    >
+                                    <div v-if="responseSavedStatus === 'confirmed'" class="confirmation-background-card"
+                                        :style="confirmationBackgroundStyle">
                                         <div class="confirmation-overlay">
                                             <div class="response-icon">🎉</div>
 
@@ -130,21 +107,48 @@
                                             </p>
 
                                             <h3>
-                                                Nos alegra mucho que puedas acompañarnos
+                                               Querido/a {{ guest.first_name }} Nos alegra mucho que puedas acompañarnos
                                             </h3>
 
                                             <p class="response-message">
                                                 Gracias por acompañarnos con
                                                 {{ form.companions || 1 }}
                                                 {{ form.companions === 1 ? 'persona' : 'personas' }}.
-                                                Esperamos celebrarlo contigo con mucho amor.
+                                                Esperamos celebrarlo contigo con mucha alegría.
                                             </p>
 
-                                            <button
-                                                class="exit-btn"
-                                                type="button"
-                                                @click="closeInvitation"
-                                            >
+                                            <div v-if="guest.mesa" class="mesa-assigned">
+                                                <span class="mesa-title">
+                                                    Tu mesa asignada
+                                                </span>
+
+                                                <div class="mesa-badge">
+                                                    <div
+                                                        class="mesa-dot"
+                                                        :style="{
+                                                            backgroundColor: getMesaColor(guest.mesa.color)
+                                                        }"
+                                                    ></div>
+
+                                                    <span>
+                                                        Mesa {{ guest.mesa.numero }}
+                                                        ·
+                                                        {{ guest.mesa.color }}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div v-else class="mesa-assigned">
+                                                <span class="mesa-title">
+                                                    Mesa
+                                                </span>
+
+                                                <div class="mesa-badge pending-mesa">
+                                                    <span>Pronto te confirmaremos mesa</span>
+                                                </div>
+                                            </div>
+
+                                            <button class="exit-btn" type="button" @click="closeInvitation">
                                                 Cerrar
                                             </button>
                                         </div>
@@ -163,14 +167,11 @@
                                         </h3>
 
                                         <p class="response-message">
-                                            Te extrañaremos mucho, pero valoramos tu cariño y te queremos cerca aunque sea desde el corazón.
+                                            Te extrañaremos mucho, pero valoramos tu cariño y te queremos cerca aunque
+                                            sea desde el corazón.
                                         </p>
 
-                                        <button
-                                            class="exit-btn"
-                                            type="button"
-                                            @click="closeInvitation"
-                                        >
+                                        <button class="exit-btn" type="button" @click="closeInvitation">
                                             Cerrar
                                         </button>
                                     </template>
@@ -205,6 +206,17 @@ const guestName = computed(() => {
     const first = guest.value?.first_name ?? ''
     const last = guest.value?.last_name ?? ''
     return [first, last].filter(Boolean).join(' ').trim()
+})
+
+const maxCompanions = computed(() => {
+    const invitations = Number(
+        guest.value?.invitations ?? 1
+    )
+
+    return Math.max(
+        invitations - 1,
+        0
+    )
 })
 
 const form = ref({
@@ -244,6 +256,7 @@ const loadGuest = async () => {
         guest.value = guestData
         form.value.confirmation_status = normalizeStatus(guestData.confirmation_status ?? guestData.confirmacion)
         form.value.companions = guestData.companions ?? 0
+        console.log(guestData)
     } catch (error) {
         console.error(error)
     } finally {
@@ -264,8 +277,39 @@ const selectConfirmation = (status) => {
 }
 
 const updateCompanions = (value) => {
-    const numericValue = Number(value || 0)
-    form.value.companions = Math.min(Math.max(numericValue, 0), 10)
+
+    const numericValue =
+        Number(value || 0)
+
+    form.value.companions =
+        Math.min(
+            Math.max(numericValue, 0),
+            maxCompanions.value
+        )
+}
+
+const getMesaColor = (color) => {
+
+    const colores = {
+        rojo: '#dc3545',
+        azul: '#0d6efd',
+        verde: '#198754',
+        amarillo: '#ffc107',
+        morado: '#6f42c1',
+        naranja: '#fd7e14',
+        celeste: '#0dcaf0',
+        rosa: '#d63384',
+        gris: '#6c757d',
+        dorado: '#d4a017',
+        turquesa: '#20c997',
+        lila: '#a78bfa',
+        marron: '#8b5e3c',
+        beige: '#d6c7a1',
+    }
+
+    return colores[
+        String(color).toLowerCase()
+    ] || '#6c757d'
 }
 
 const registerResponse = async () => {
@@ -314,7 +358,7 @@ const closeInvitation = () => {
 }
 
 const confirmationBackgroundStyle = computed(() => ({
-backgroundImage: `url('/images/portada1.jpg')`,
+    backgroundImage: `url('/images/portada1.jpg')`,
 }))
 
 onMounted(() => {
@@ -354,11 +398,9 @@ onMounted(() => {
     inset: 0;
 
     background:
-        linear-gradient(
-            to bottom,
+        linear-gradient(to bottom,
             rgba(0, 0, 0, 0.45),
-            rgba(0, 0, 0, 0.35)
-        );
+            rgba(0, 0, 0, 0.35));
 
     z-index: 1;
 }
@@ -467,7 +509,7 @@ onMounted(() => {
     gap: 0.4rem;
     padding: 0.8rem 0.9rem;
     border-radius: 18px;
-    background: linear-gradient(180deg, rgba(248,245,239,0.95), rgba(240,245,240,0.95));
+    background: linear-gradient(180deg, rgba(248, 245, 239, 0.95), rgba(240, 245, 240, 0.95));
     border: 1px solid rgba(120, 147, 128, 0.18);
 }
 
@@ -615,7 +657,7 @@ onMounted(() => {
     min-height: 46px;
     border: 1px solid rgba(120, 147, 128, 0.24);
     border-radius: 12px;
-    background: rgba(255,255,255,0.9);
+    background: rgba(255, 255, 255, 0.9);
     color: #1f2f2c;
     font-size: 1.05rem;
     padding: 0.7rem 0.8rem;
@@ -652,18 +694,18 @@ onMounted(() => {
     padding: 1.4rem 1rem;
     border-radius: 20px;
     text-align: center;
-    background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(243,248,243,0.94));
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(243, 248, 243, 0.94));
     border: 1px solid rgba(120, 147, 128, 0.2);
     box-shadow: 0 14px 30px rgba(88, 108, 88, 0.08);
 }
 
 .response-result-card.is-confirmed {
-    background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(234,245,235,0.96));
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(234, 245, 235, 0.96));
     border-color: rgba(120, 164, 126, 0.33);
 }
 
 .response-result-card.is-declined {
-    background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(245,239,240,0.96));
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(245, 239, 240, 0.96));
     border-color: rgba(164, 117, 130, 0.28);
 }
 
@@ -793,5 +835,72 @@ onMounted(() => {
     .companions-box {
         padding: 0.8rem;
     }
+
+
+}
+
+.mesa-assigned {
+
+    margin-top: 1.2rem;
+
+    text-align: center;
+}
+
+.mesa-title {
+
+    display: block;
+
+    margin-bottom: .5rem;
+
+    font-size: .8rem;
+
+    text-transform: uppercase;
+
+    letter-spacing: .08em;
+
+    color: rgba(255,255,255,.9);
+}
+
+.mesa-badge {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: .6rem;
+
+    padding: .75rem 1rem;
+
+    border-radius: 999px;
+
+    background: rgba(255,255,255,.15);
+
+    backdrop-filter: blur(5px);
+
+    color: white;
+
+    font-weight: 700;
+}
+
+.mesa-badge.pending-mesa {
+
+    background: rgba(255, 255, 255, 0.18);
+
+    border: 1px solid rgba(255, 255, 255, 0.2);
+
+    color: #f5f3ee;
+
+    white-space: nowrap;
+}
+
+.mesa-dot {
+
+    width: 16px;
+
+    height: 16px;
+
+    border-radius: 50%;
+
+    border: 2px solid white;
 }
 </style>

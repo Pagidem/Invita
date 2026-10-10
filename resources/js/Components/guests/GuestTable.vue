@@ -11,7 +11,8 @@
                         <th>#</th>
                         <th>Nombre</th>
                         <th>Telefono</th>
-                        <th>Confirmación</th>
+                        <th>Estado</th>
+                        <th>Mesa</th>
                         <th>Compartir</th>
                         <th>Acciones</th>
                     </tr>
@@ -46,6 +47,10 @@
                         </td>
 
                         <td>
+                            {{ guest.mesa?.numero ?? 'Sin asignar' }}
+                        </td>
+
+                        <td>
                             <button
                                 class="btn btn-sm btn-outline-success"
                                 @click="openWhatsApp(guest)"
@@ -68,10 +73,10 @@
                                 </button>
 
                                 <button
-                                    class="btn btn-sm btn-outline-danger"
-                                    @click="deleteGuest(guest)"
+                                    class="btn btn-sm btn-outline-success me-2"
+                                    @click="assignMesa(guest)"
                                 >
-                                    Eliminar
+                                    Mesa
                                 </button>
 
                             </div>
@@ -109,6 +114,14 @@
 
         </div>
 
+        <ModalMesa
+            :show="showMesaModal"
+            :guest="selectedGuest"
+            :mesas="mesas"
+            @close="showMesaModal = false"
+            @select="selectMesa"
+        />
+
     </div>
 
 </template>
@@ -118,6 +131,7 @@
 
 import { toRefs, ref } from 'vue'
 import api from '@/Services/axios.js'
+import ModalMesa from '@/Components/mesas/ModalMesa.vue'
 
 const props = defineProps({
     guests: { type: Array, default: () => [] },
@@ -131,7 +145,8 @@ const emit = defineEmits([
     'edit-guest',
     'delete-guest',
     'update-confirmacion',
-    'change-page'
+    'change-page',
+    'refresh'
 ])
 
 
@@ -152,6 +167,28 @@ const statusMap = {
     },
 }
 
+const showMesaModal = ref(false)
+
+const selectedGuest = ref(null)
+
+const mesas = ref([])
+
+const loadMesas = async () => {
+
+    try {
+
+        const response =
+            await api.get('/mesas')
+
+        mesas.value =
+            response.data.data
+
+    } catch (error) {
+
+        console.error(error)
+    }
+}
+
 
 const normalizeStatus = (status) =>
     statusMap[status] ? status : 'pendiente'
@@ -170,11 +207,46 @@ const editGuest = (guest) => {
     emit('edit-guest', guest)
 }
 
-
+/*
 const deleteGuest = (guest) => {
     emit('delete-guest', guest)
 }
+    */
 
+const assignMesa = async (guest) => {
+
+    selectedGuest.value = guest
+
+    await loadMesas()
+
+    showMesaModal.value = true
+}
+
+const selectMesa = async (mesa) => {
+
+    try {
+
+        await api.post(
+            `/guests/${selectedGuest.value.id}/assign-mesa`,
+            {
+                mesa_id: mesa.id
+            }
+        )
+
+        showMesaModal.value = false
+
+        emit('refresh')
+
+    } catch (error) {
+
+        console.error(error)
+
+        alert(
+            error?.response?.data?.message ??
+            'No se pudo asignar la mesa.'
+        )
+    }
+}
 
 const updateConfirmation = (guest, value) => {
     emit('update-confirmacion', {

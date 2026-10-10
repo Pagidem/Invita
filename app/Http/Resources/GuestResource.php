@@ -24,6 +24,17 @@ class GuestResource extends JsonResource
 
             'phone' => $this->phone,
             'email' => $this->email,
+            'mesa_id' => $this->mesa_id,
+            'mesa' => $this->whenLoaded('mesa', function () {
+                return $this->mesa ? [
+                    'id' => $this->mesa->id,
+                    'numero' => $this->mesa->numero,
+                    'color' => $this->mesa->color,
+                    'estado' => $this->estado,
+                    'invitados_actuales' => $this->invitados_actuales,
+                    'confirmados_actuales' => $this->confirmados_actuales,
+                ] : null;
+            }),
             'invitations' => $this->invitations,
             'confirmation_token' => $this->confirmation_token,
             'companions' => (int) ($this->companions ?? 0),

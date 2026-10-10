@@ -76,6 +76,28 @@ class GuestControllerTest extends TestCase
             ->assertJsonPath('full_name', 'Ana García');
     }
 
+    public function test_it_returns_mesa_data_for_a_guest_with_an_assigned_table(): void
+    {
+        $mesa = \App\Models\Mesa::create([
+            'numero' => 7,
+            'color' => 'verde',
+        ]);
+
+        $guest = \App\Models\Guest::factory()->create([
+            'first_name' => 'Luis',
+            'last_name' => 'Mora',
+            'mesa_id' => $mesa->id,
+            'confirmation_token' => '123e4567-e89b-12d3-a456-426614174001',
+        ]);
+
+        $response = $this->getJson('/api/rsvp/' . $guest->confirmation_token);
+
+        $response->assertOk()
+            ->assertJsonPath('mesa_id', $mesa->id)
+            ->assertJsonPath('mesa.numero', 7)
+            ->assertJsonPath('mesa.color', 'verde');
+    }
+
     public function test_it_returns_a_user_friendly_error_when_ci_already_exists(): void
     {
         $this->postJson('/api/guests', [

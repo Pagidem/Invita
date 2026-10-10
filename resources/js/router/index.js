@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import Login from '../Components/Login.vue';
 import Dashboard from '../Components/Dashboard.vue';
 import AppLayout from '../Components/AppLayout.vue';
+import DashMesas from '../Components/DashMesa.vue';
 
 const routes = [
     {
@@ -41,6 +42,11 @@ const routes = [
                 name: 'guests',
                 component: () => import('../Components/Guests.vue'),
             },
+            {
+                path: 'mesas',
+                name: 'mesas',
+                component: () => import('../Components/DashMesa.vue'),
+            },
         ],
     },
 
@@ -75,6 +81,7 @@ router.afterEach((to) => {
     const routeTitles = {
         dashboard: 'Dashboard',
         guests: 'Invitados',
+        mesas: 'Mesas',
         rsvp: 'Confirmar asistencia',
         login: 'Iniciar sesión',
     };

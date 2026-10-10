@@ -11,6 +11,7 @@ class GuestRsvpController extends Controller
     public function show(string $token)
     {
         $guest = Guest::query()
+            ->with('mesa')
             ->where('confirmation_token', $token)
             ->firstOrFail();
 
@@ -22,6 +23,12 @@ class GuestRsvpController extends Controller
             'full_name' => trim($guest->first_name . ' ' . $guest->last_name),
             'phone' => $guest->phone,
             'email' => $guest->email,
+            'mesa_id' => $guest->mesa_id,
+            'mesa' => $guest->mesa ? [
+                'id' => $guest->mesa->id,
+                'numero' => $guest->mesa->numero,
+                'color' => $guest->mesa->color,
+            ] : null,
             'invitations' => $guest->invitations,
             'confirmation_token' => $guest->confirmation_token,
             'companions' => (int) ($guest->companions ?? 0),
@@ -80,6 +87,7 @@ class GuestRsvpController extends Controller
                 'confirmacion' => 'pendiente',
                 'companions' => 0,
                 'confirmed_at' => null,
+                'mesa_id' => null,
             ]);
 
             return response()->json([
@@ -99,6 +107,7 @@ class GuestRsvpController extends Controller
             'confirmacion' => $status,
             'companions' => $companions,
             'confirmed_at' => $confirmedAt,
+            'mesa_id' => $status === 'cancelado' ? null : $guest->mesa_id,
         ]);
 
         $freshGuest = $guest->fresh();
